@@ -1,59 +1,106 @@
-import { useState } from "react";
-import { FaGoogle, FaFacebook, FaGithub } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
+import toast from "react-hot-toast";
+import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { login, requestPasswordReset, signup } from "../services/api";
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("login"); // login | register | forgot
+  const { login: setAuth } = useContext(AuthContext);
+  const [activeTab, setActiveTab] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [email, setEmail] = useState("");
+  const [subdomain, setSubdomain] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // demo credentials
-  const DEMO_USER = "asdf123";
-  const DEMO_PASS = "123456";
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-
+    try {
       if (activeTab === "login") {
-        if (username === DEMO_USER && password === DEMO_PASS) {
-          localStorage.setItem("token", "demo-token-123");
-          localStorage.setItem("username", username);
-          navigate("/");
-        } else {
-          setError("Tài khoản hoặc mật khẩu không đúng.");
-        }
+        console.log("Attempting login with:", { email: username, password }); // Debug
+        const response = await login({ email: username, passwordHash: password });
+        console.log("Login response:", response); // Debug
+        setAuth(
+          {
+            email: username,
+            tenantId: response.tenantId,
+            roles: response.roles || ["Admin"], // Sử dụng roles từ response nếu có
+          },
+          response.token
+        );
+        toast.success("Đăng nhập thành công!");
+        navigate("/admin");
       } else if (activeTab === "register") {
         if (password !== confirmPass) {
           setError("Mật khẩu xác nhận không khớp!");
-        } else {
-          alert(`(Demo) Đăng ký thành công cho ${username}`);
-          setActiveTab("login");
+          setLoading(false);
+          return;
         }
+        const response = await signup({
+          email,
+          passwordHash: password,
+          subdomain,
+          name: username,
+        });
+        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.");
+        setAuth(
+          {
+            email,
+            tenantId: response.tenantId,
+            roles: ["Admin"],
+          },
+          response.token
+        );
+        setActiveTab("login");
       } else if (activeTab === "forgot") {
-        alert(`(Demo) Email khôi phục đã được gửi đến: ${email}`);
+        await requestPasswordReset({ email });
+        toast.success("Link đặt lại mật khẩu đã được gửi đến email của bạn.");
         setActiveTab("login");
       }
-    }, 800);
+    } catch (err) {
+      console.error("Error during auth:", err);
+      setError(err.response?.data?.Message || err.response?.data?.Error || "Đã có lỗi xảy ra.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSocial = (provider) => {
-    alert(`(Demo) Sẽ mở OAuth với ${provider} — bạn tích hợp thật ở backend.`);
+    toast.error(`Chưa hỗ trợ đăng nhập với ${provider}. Vui lòng thử lại sau!`);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-50 px-4">
+      {/* Nút trở về trang chủ */}
+      <Link
+        to="/"
+        className="fixed top-4 left-4 text-blue-600 hover:underline flex items-center gap-1 text-sm font-semibold z-50"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        Trang chủ
+      </Link>
+
       <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-blue-600">FECN SaaS</h1>
           <p className="text-gray-500">
@@ -65,16 +112,15 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {activeTab !== "forgot" && (
             <div>
-              <label className="block text-gray-600 mb-1">Tài khoản</label>
+              <label className="block text-gray-600 mb-1">Email</label>
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                type="text"
-                placeholder="Nhập tài khoản"
+                type="email"
+                placeholder="Nhập email"
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
               />
@@ -82,17 +128,30 @@ export default function AuthPage() {
           )}
 
           {activeTab === "register" && (
-            <div>
-              <label className="block text-gray-600 mb-1">Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="Nhập email của bạn"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-gray-600 mb-1">Tên người dùng</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="Nhập tên người dùng"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Subdomain</label>
+                <input
+                  value={subdomain}
+                  onChange={(e) => setSubdomain(e.target.value)}
+                  type="text"
+                  placeholder="Nhập subdomain"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+            </>
           )}
 
           {activeTab !== "forgot" && (
@@ -111,9 +170,7 @@ export default function AuthPage() {
 
           {activeTab === "register" && (
             <div>
-              <label className="block text-gray-600 mb-1">
-                Xác nhận mật khẩu
-              </label>
+              <label className="block text-gray-600 mb-1">Xác nhận mật khẩu</label>
               <input
                 value={confirmPass}
                 onChange={(e) => setConfirmPass(e.target.value)}
@@ -182,7 +239,6 @@ export default function AuthPage() {
           </button>
         </form>
 
-        {/* Footer actions */}
         <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
           {activeTab === "login" && (
             <>
@@ -227,18 +283,14 @@ export default function AuthPage() {
           )}
         </div>
 
-        {/* Divider */}
         {activeTab === "login" && (
           <>
             <div className="flex items-center my-6">
               <div className="flex-grow border-t border-gray-300"></div>
-              <span className="px-3 text-gray-400 text-sm">
-                Hoặc đăng nhập bằng
-              </span>
+              <span className="px-3 text-gray-400 text-sm">Hoặc đăng nhập bằng</span>
               <div className="flex-grow border-t border-gray-300"></div>
             </div>
 
-            {/* Social login buttons */}
             <div className="grid gap-3">
               <button
                 onClick={() => handleSocial("Google")}
@@ -247,7 +299,6 @@ export default function AuthPage() {
                 <FaGoogle className="text-xl text-red-500" />
                 <span>Google</span>
               </button>
-
               <button
                 onClick={() => handleSocial("Facebook")}
                 className="w-full flex items-center justify-center gap-3 border py-2 rounded-lg hover:bg-gray-50 transition"
@@ -255,7 +306,6 @@ export default function AuthPage() {
                 <FaFacebook className="text-xl text-blue-600" />
                 <span>Facebook</span>
               </button>
-
               <button
                 onClick={() => handleSocial("GitHub")}
                 className="w-full flex items-center justify-center gap-3 border py-2 rounded-lg hover:bg-gray-50 transition"

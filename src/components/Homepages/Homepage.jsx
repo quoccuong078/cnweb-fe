@@ -1,8 +1,32 @@
 import { motion } from "framer-motion";
-import Navbar from "../Navbar/Navbar";
 import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import "slick-carousel/slick/slick.css";
+import Navbar from "../Navbar/Navbar";
+
+// Component tùy chỉnh cho nút Next
+const NextArrow = ({ onClick }) => {
+  return (
+    <div
+      className="absolute right-5 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 shadow-lg text-xl"
+      onClick={onClick}
+    >
+      ❯
+    </div>
+  );
+};
+
+// Component tùy chỉnh cho nút Prev
+const PrevArrow = ({ onClick }) => {
+  return (
+    <div
+      className="absolute left-5 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 shadow-lg text-xl"
+      onClick={onClick}
+    >
+      ❮
+    </div>
+  );
+};
 
 export default function Homepage() {
   const sliderSettings = {
@@ -14,16 +38,8 @@ export default function Homepage() {
     autoplay: true,
     autoplaySpeed: 4000,
     arrows: true,
-    nextArrow: (
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 shadow-lg text-xl">
-        ❯
-      </div>
-    ),
-    prevArrow: (
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 z-10 cursor-pointer bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 shadow-lg text-xl">
-        ❮
-      </div>
-    ),
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
   };
 
   return (
