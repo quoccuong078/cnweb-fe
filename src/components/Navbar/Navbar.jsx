@@ -1,7 +1,15 @@
-import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function Navbar() {
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
@@ -32,12 +40,23 @@ export default function Navbar() {
           <button className="hidden md:block px-4 py-2 border border-blue-500 text-blue-600 rounded-full font-semibold hover:bg-blue-50 transition">
             Bắt đầu miễn phí
           </button>
-          <button
-            onClick={() => navigate("/auth")} // 👈 Thêm điều hướng
-            className="px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition"
-          >
-            Đăng nhập
-          </button>
+          {user ? (
+            <>
+              <Link to="/admin" className="hover:underline">
+                Admin Panel
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="hover:underline"
+              >
+                Đăng xuất
+              </button>
+            </>
+          ) : (
+            <Link to="/auth" className="hover:underline">
+              Đăng nhập
+            </Link>
+          )}
         </div>
       </div>
     </header>
