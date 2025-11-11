@@ -9,64 +9,84 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { login: setAuth } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("login");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
-  const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [subdomain, setSubdomain] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setError("");
     setLoading(true);
 
     try {
       if (activeTab === "login") {
-        console.log("Attempting login with:", { email: username, password }); // Debug
-        const response = await login({ email: username, passwordHash: password });
-        console.log("Login response:", response); // Debug
-        setAuth(
-          {
-            email: username,
-            tenantId: response.tenantId,
-            roles: response.roles || ["Admin"], // Sử dụng roles từ response nếu có
-          },
-          response.token
-        );
-        toast.success("Đăng nhập thành công!");
-        navigate("/admin");
-      } else if (activeTab === "register") {
-        if (password !== confirmPass) {
-          setError("Mật khẩu xác nhận không khớp!");
-          setLoading(false);
-          return;
-        }
-        const response = await signup({
-          email,
-          passwordHash: password,
-          subdomain,
-          name: username,
-        });
-        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.");
+        console.log("Attempting login with:", { email, password });
+        const response = await login({ email, password });
+        console.log("Login response:", response);
         setAuth(
           {
             email,
             tenantId: response.tenantId,
-            roles: ["Admin"],
+            roles: response.roles || ["Admin"],
           },
           response.token
         );
-        setActiveTab("login");
+        toast.success("Đăng nhập thành công!", { duration: 5000 });
+        navigate("/admin");
+      } else if (activeTab === "register") {
+        if (password !== confirmPass) {
+          const errorMessage = "Mật khẩu xác nhận không khớp!";
+          toast.error(errorMessage, { duration: 5000 });
+          setError(errorMessage);
+          setLoading(false);
+          return;
+        }
+        const response = await signup({
+          CompanyName: companyName,
+          Email: email,
+          Password: password,
+          ContactName: contactName,
+          PhoneNumber: phoneNumber,
+          Subdomain: subdomain,
+        });
+        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.", { duration: 5000 });
+        setAuth(
+          {
+            email,
+            tenantId: response.TenantId,
+            roles: ["Admin"],
+          },
+          response.Token
+        );
+        setTimeout(() => setActiveTab("login"), 3000);
       } else if (activeTab === "forgot") {
         await requestPasswordReset({ email });
-        toast.success("Link đặt lại mật khẩu đã được gửi đến email của bạn.");
-        setActiveTab("login");
+        toast.success("Link đặt lại mật khẩu đã được gửi đến email của bạn.", { duration: 5000 });
+        setTimeout(() => setActiveTab("login"), 3000);
       }
     } catch (err) {
       console.error("Error during auth:", err);
-      setError(err.response?.data?.Message || err.response?.data?.Error || "Đã có lỗi xảy ra.");
+      console.log("Error response:", err.response?.data);
+      let errorMessage = "Có lỗi xảy ra. Vui lòng thử lại.";
+      
+      if (activeTab === "login" && err.response?.status === 401) {
+        errorMessage = "Email hoặc mật khẩu không đúng.";
+      } else if (err.response?.data?.Message) {
+        errorMessage = err.response.data.Message;
+      } else if (err.response?.data?.Error) {
+        errorMessage = err.response.data.Error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setLoading(false);
     }
@@ -78,7 +98,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-50 px-4">
-      {/* Nút trở về trang chủ */}
       <Link
         to="/"
         className="fixed top-4 left-4 text-blue-600 hover:underline flex items-center gap-1 text-sm font-semibold z-50"
@@ -113,29 +132,75 @@ export default function AuthPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {activeTab !== "forgot" && (
-            <div>
-              <label className="block text-gray-600 mb-1">Email</label>
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                type="email"
-                placeholder="Nhập email"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
+          {activeTab === "login" && (
+            <>
+              <div>
+                <label className="block text-gray-600 mb-1">Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="Nhập email"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Mật khẩu</label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="Nhập mật khẩu"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+            </>
           )}
 
           {activeTab === "register" && (
             <>
               <div>
-                <label className="block text-gray-600 mb-1">Tên người dùng</label>
+                <label className="block text-gray-600 mb-1">Tên công ty</label>
+                <input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  type="text"
+                  placeholder="Nhập tên công ty"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Email</label>
                 <input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="Nhập email"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Tên liên hệ</label>
+                <input
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
                   type="text"
-                  placeholder="Nhập tên người dùng"
+                  placeholder="Nhập tên liên hệ"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Số điện thoại</label>
+                <input
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  type="tel"
+                  placeholder="Nhập số điện thoại"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
                 />
@@ -146,40 +211,34 @@ export default function AuthPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   type="text"
-                  placeholder="Nhập subdomain"
+                  placeholder="Nhập subdomain (VD: mycompany)"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Mật khẩu</label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="Nhập mật khẩu"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">Xác nhận mật khẩu</label>
+                <input
+                  value={confirmPass}
+                  onChange={(e) => setConfirmPass(e.target.value)}
+                  type="password"
+                  placeholder="Nhập lại mật khẩu"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
                 />
               </div>
             </>
-          )}
-
-          {activeTab !== "forgot" && (
-            <div>
-              <label className="block text-gray-600 mb-1">Mật khẩu</label>
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                placeholder="Nhập mật khẩu"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-          )}
-
-          {activeTab === "register" && (
-            <div>
-              <label className="block text-gray-600 mb-1">Xác nhận mật khẩu</label>
-              <input
-                value={confirmPass}
-                onChange={(e) => setConfirmPass(e.target.value)}
-                type="password"
-                placeholder="Nhập lại mật khẩu"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
           )}
 
           {activeTab === "forgot" && (

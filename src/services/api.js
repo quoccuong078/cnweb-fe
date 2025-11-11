@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://localhost:7007/api/auth"; // Use HTTPS endpoint; adjust if using HTTP
+const API_URL = "https://localhost:7007/api/auth";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,23 +9,37 @@ const api = axios.create({
   },
 });
 
-// Interceptor to add JWT token to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("API Request: Adding token to", config.url);
+    } else {
+      console.log("API Request: No token found for", config.url);
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("API Request Error:", error);
+    return Promise.reject(error);
+  }
 );
 
-// Interceptor to handle errors (e.g., 401 Unauthorized)
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("API Response:", response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error("API Response Error:", error.response?.config.url, error.response?.status);
     if (error.response?.status === 401) {
+      const isLoginRequest = error.response.config.url.includes("/login");
+      console.log("API 401 Error: isLoginRequest=", isLoginRequest);
+      if (isLoginRequest) {
+        return Promise.reject(error);
+      }
+      console.log("API 401: Triggering redirect to /auth");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/auth";
@@ -35,7 +49,14 @@ api.interceptors.response.use(
 );
 
 export const signup = async (data) => {
-  const response = await api.post("/signup", data);
+  const response = await api.post("/signup", {
+    CompanyName: data.CompanyName,
+    Email: data.Email,
+    Password: data.Password,
+    ContactName: data.ContactName,
+    PhoneNumber: data.PhoneNumber,
+    Subdomain: data.Subdomain,
+  });
   return response.data;
 };
 
@@ -55,12 +76,16 @@ export const resetPassword = async (data) => {
 };
 
 export const verifyEmail = async (data) => {
+  console.log("verifyEmail: Sending request with data:", data);
   const response = await api.post("/verify-email", data);
+  console.log("verifyEmail: Response:", response.data);
   return response.data;
 };
 
 export const getCurrentUser = async () => {
+  console.log("getCurrentUser: Sending request");
   const response = await api.get("/current-user");
+  console.log("getCurrentUser: Response:", response.data);
   return response.data;
 };
 
