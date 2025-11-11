@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { getCurrentUser } from "../services/api";
 
 export const AuthContext = createContext();
@@ -6,17 +7,19 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (token) {
+        if (token && location.pathname !== "/verify-email") { // Bỏ qua verify-email
+          console.log("AuthContext: Fetching current user");
           const userData = await getCurrentUser();
           setUser(userData);
         }
       } catch (error) {
-        console.error("Failed to fetch user:", error);
+        console.error("AuthContext: Failed to fetch user:", error);
         setUser(null);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -25,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
     fetchUser();
-  }, []);
+  }, [location.pathname]);
 
   const login = (userData, token) => {
     setUser(userData);

@@ -21,8 +21,8 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
       <BrowserRouter>
+        <AuthProvider>
         <Toaster position="top-right" reverseOrder={false} />
         <Routes>
           <Route element={<MainLayout />}>
@@ -39,7 +39,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="editor" element={<EditorPage />} />
           </Route>
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
-    </AuthProvider>
   </React.StrictMode>
 );
