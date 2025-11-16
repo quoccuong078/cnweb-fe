@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const CreateLanding = () => {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [template, setTemplate] = useState("");
+  const navigate = useNavigate();
 
   const templates = [
     {
@@ -28,12 +31,11 @@ const CreateLanding = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title || !slug || !template) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
-      return;
-    }
-    alert(`Đã tạo landing page: ${title} (${slug}) với mẫu ${template}`);
+
+    navigate('/admin/editor');
   };
+
+
 
   return (
     <div className="bg-white rounded-xl shadow-md p-8">
