@@ -1,5 +1,5 @@
+// src/context/AuthContext.jsx
 import { createContext, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { getCurrentUser } from "../services/api";
 
 export const AuthContext = createContext();
@@ -7,13 +7,12 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (token && location.pathname !== "/verify-email") { // Bỏ qua verify-email
+        if (token) {
           console.log("AuthContext: Fetching current user");
           const userData = await getCurrentUser();
           setUser(userData);
@@ -27,9 +26,10 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
-    fetchUser();
-  }, [location.pathname]);
 
+    fetchUser();
+  }, []);
+  
   const login = (userData, token) => {
     setUser(userData);
     localStorage.setItem("token", token);

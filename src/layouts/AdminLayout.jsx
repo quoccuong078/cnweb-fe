@@ -1,45 +1,25 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import toast from "react-hot-toast";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 // ICONS
 import { FiBox, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
 
 const AdminLayout = () => {
-  const { user, loading, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!loading && (!user || !user.roles.includes("Admin"))) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
+  const { user, logout } = useContext(AuthContext);
 
   const handleLogout = () => {
     logout();
     toast.success("Đăng xuất thành công!");
-    navigate("/auth");
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  if (!user || !user.roles.includes("Admin")) return null;
-
+  // Chỉ giữ lại các menu phù hợp với Admin (không có quản lý user toàn hệ thống)
   const menuItems = [
     { name: "Dashboard", path: "/admin", icon: <FiHome /> },
     { name: "Quản lý Landing", path: "/admin/landing-management", icon: <FiLayers /> },
-    { name: "Quản lý người dùng", path: "/admin/users", icon: <FiUsers /> },
     { name: "Quản lý sản phẩm", path: "/admin/products", icon: <FiBox /> },
-    { name: "Quản lý nhân viên", path: "/admin/employees", icon: <FiBox /> },
-    { name: "Danh sách vai trò", path: "/admin/roles", icon: <FiShield /> },
+    { name: "Quản lý nhân viên", path: "/admin/employees", icon: <FiUsers /> }, // Chỉ nhân viên trong tenant
     { name: "Thông tin cá nhân", path: "/admin/profile", icon: <FiShield /> },
   ];
 
@@ -83,23 +63,14 @@ const AdminLayout = () => {
 
         <header className="bg-white shadow p-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold text-blue-700">Trang quản trị</h1>
-
           <div className="flex items-center space-x-3">
-            <span className="font-medium">{user.email}</span>
-            <img
-              src="https://i.pravatar.cc/40"
-              alt="avatar"
-              className="rounded-full w-10 h-10"
-            />
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-            >
+            <span className="font-medium">{user?.email}</span>
+            <img src="https://i.pravatar.cc/40" alt="avatar" className="rounded-full w-10 h-10" />
+            <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
               Đăng xuất
             </button>
           </div>
         </header>
-
         <main className="flex-1 p-6 bg-gray-50">
           <Outlet />
         </main>

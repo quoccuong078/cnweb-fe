@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ProductForm from './ProductForm';
 
 const ProductList = () => {
@@ -38,7 +38,7 @@ const ProductList = () => {
                         onClick={handleAdd}
                         className="px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-md transition"
                     >
-                        <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+                        <i className="fa-solid fa-plus"></i> Thêm sản phẩm
                     </button>
                 </div>
 
