@@ -38,12 +38,14 @@ const AdminLayout = () => {
     { name: "Quản lý Landing", path: "/admin/landing-management", icon: <FiLayers /> },
     { name: "Quản lý người dùng", path: "/admin/users", icon: <FiUsers /> },
     { name: "Quản lý sản phẩm", path: "/admin/products", icon: <FiBox /> },
+    { name: "Quản lý nhân viên", path: "/admin/employees", icon: <FiBox /> },
     { name: "Danh sách vai trò", path: "/admin/roles", icon: <FiShield /> },
+    { name: "Thông tin cá nhân", path: "/admin/profile", icon: <FiShield /> },
   ];
 
   return (
     <div className="min-h-screen flex bg-gray-50 text-gray-800">
-      
+
       {/* SIDEBAR */}
       <aside className="w-64 bg-white shadow-lg border-r flex flex-col">
         <div className="p-5 text-2xl font-bold text-blue-700 border-b">
