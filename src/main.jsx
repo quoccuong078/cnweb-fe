@@ -21,11 +21,13 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import "./index.css";
+import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
+import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-      <BrowserRouter>
-        <AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
         <Toaster position="top-right" reverseOrder={false} />
         <Routes>
           <Route element={<MainLayout />}>
@@ -43,9 +45,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="editor" element={<EditorPage />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="products" element={<ProductList />} />
+            <Route path="employees" element={<EmployeeManagement />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );
