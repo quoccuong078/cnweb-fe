@@ -2,17 +2,12 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   safelist: [
-    // bg-*, text-*, border-*
+    // Safelist cho bg-*, text-*, border-*
     {
       pattern: /(bg|text|border)-(blue|green|red|purple|orange|pink|gray|teal)-(100|200|300|400|500|600|700|800|900)/,
+      variants: ["hover"], // Thêm biến thể hover cho bg-*, text-*, border-*
     },
-
-    // hover:bg-*
-    {
-      pattern: /hover:(bg)-(blue|green|red|purple|orange|pink|gray|teal)-(100|200|300|400|500|600|700|800|900)/,
-    },
-
-    // gradients
+    // Safelist cho gradients
     {
       pattern: /(from|to)-(blue|green|red|purple|orange|pink|gray|teal)-(100|200|300|400|500|600|700|800|900)/,
     },
