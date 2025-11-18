@@ -20,6 +20,7 @@ import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
 import ProductList from "./pages/ProductManagement/ProductList.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import RolesList from "./pages/superadmin/RolesList.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
@@ -59,6 +60,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route element={<SuperAdminLayout />}>
               <Route path="/superadmin" element={<SuperAdminDashboard />} />
               <Route path="/superadmin/users" element={<UserManagement />} />
+              <Route path="/superadmin/profile" element={<ProfilePage />} />
+              <Route path="/superadmin/roles" element={<RolesList />} />
             </Route>
           </Route>
         </Routes>
