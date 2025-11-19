@@ -45,6 +45,9 @@ export default function Navbar() {
               <Link to="/admin" className="hover:underline">
                 Admin Panel
               </Link>
+              <Link to="/change-password" className="hover:underline">
+                Đổi mật khẩu
+              </Link>
               <button
                 onClick={handleLogout}
                 className="hover:underline"

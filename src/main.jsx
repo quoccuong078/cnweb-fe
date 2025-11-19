@@ -23,7 +23,7 @@ import "slick-carousel/slick/slick.css";
 import "./index.css";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
-
+import ChangePasswordPage from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -36,6 +36,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           </Route>
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
@@ -47,6 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="products" element={<ProductList />} />
             <Route path="employees" element={<EmployeeManagement />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="change-password" element={<ChangePasswordPage />} />
           </Route>
         </Routes>
       </AuthProvider>

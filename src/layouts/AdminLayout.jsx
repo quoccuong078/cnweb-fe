@@ -41,6 +41,7 @@ const AdminLayout = () => {
     { name: "Quản lý nhân viên", path: "/admin/employees", icon: <FiBox /> },
     { name: "Danh sách vai trò", path: "/admin/roles", icon: <FiShield /> },
     { name: "Thông tin cá nhân", path: "/admin/profile", icon: <FiShield /> },
+    { name: "Đổi mật khẩu", path: "/admin/change-password", icon: <FiShield /> },
   ];
 
   return (
