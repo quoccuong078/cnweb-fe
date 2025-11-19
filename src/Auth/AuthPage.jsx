@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { login, requestPasswordReset, signup } from "../services/api";
+import { getCurrentUser, login as loginApi, requestPasswordReset, signup } from "../services/api";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -27,20 +27,20 @@ export default function AuthPage() {
 
     try {
       if (activeTab === "login") {
-        console.log("Attempting login with:", { email, password });
-        const response = await login({ email, password });
-        console.log("Login response:", response);
-        setAuth(
-          {
-            email,
-            tenantId: response.tenantId,
-            roles: response.roles || ["Admin"],
-          },
-          response.token
-        );
-        toast.success("Đăng nhập thành công!", { duration: 5000 });
-        navigate("/admin");
-      } else if (activeTab === "register") {
+      const res = await loginApi({ email, password });
+
+      localStorage.setItem("token", res.token);
+
+      const userData = await getCurrentUser();
+
+      setAuth(userData, res.token);
+
+      toast.success("Đăng nhập thành công!");
+
+      if (userData.roles.includes("SuperAdmin")) navigate("/superadmin");
+      else navigate("/admin");
+    }
+      else if (activeTab === "register") {
         if (password !== confirmPass) {
           const errorMessage = "Mật khẩu xác nhận không khớp!";
           toast.error(errorMessage, { duration: 5000 });
@@ -48,6 +48,7 @@ export default function AuthPage() {
           setLoading(false);
           return;
         }
+
         const response = await signup({
           CompanyName: companyName,
           Email: email,
@@ -56,27 +57,32 @@ export default function AuthPage() {
           PhoneNumber: phoneNumber,
           Subdomain: subdomain,
         });
+
         toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.", { duration: 5000 });
+
+        // Người đăng ký mới luôn là Admin của tenant đó
         setAuth(
           {
-            email,
-            tenantId: response.TenantId,
-            roles: ["Admin"],
+            email: response.email || email,
+            tenantId: response.tenantId || response.TenantId,
+            roles: response.roles || ["Admin"], // backend nên trả về ["Admin"]
           },
-          response.Token
+          response.token || response.Token
         );
-        setTimeout(() => setActiveTab("login"), 3000);
-      } else if (activeTab === "forgot") {
+
+        // Sau khi đăng ký thành công → chuyển về tab login hoặc vào admin luôn
+        navigate("/admin");
+      } 
+      else if (activeTab === "forgot") {
         await requestPasswordReset({ email });
         toast.success("Link đặt lại mật khẩu đã được gửi đến email của bạn.", { duration: 5000 });
         setTimeout(() => setActiveTab("login"), 3000);
       }
     } catch (err) {
       console.error("Error during auth:", err);
-      console.log("Error response:", err.response?.data);
       let errorMessage = "Có lỗi xảy ra. Vui lòng thử lại.";
-      
-      if (activeTab === "login" && err.response?.status === 401) {
+
+      if (err.response?.status === 401) {
         errorMessage = "Email hoặc mật khẩu không đúng.";
       } else if (err.response?.data?.Message) {
         errorMessage = err.response.data.Message;
@@ -87,6 +93,7 @@ export default function AuthPage() {
       }
 
       toast.error(errorMessage, { duration: 5000 });
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

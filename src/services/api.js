@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://localhost:7007/api/auth";
+const API_URL = "https://localhost:7007";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -49,7 +49,7 @@ api.interceptors.response.use(
 );
 
 export const signup = async (data) => {
-  const response = await api.post("/signup", {
+  const response = await api.post("/api/auth/signup", {
     CompanyName: data.CompanyName,
     Email: data.Email,
     Password: data.Password,
@@ -61,30 +61,30 @@ export const signup = async (data) => {
 };
 
 export const login = async (data) => {
-  const response = await api.post("/login", data);
+  const response = await api.post("/api/auth/login", data);
   return response.data;
 };
 
 export const requestPasswordReset = async (data) => {
-  const response = await api.post("/reset-password-request", data);
+  const response = await api.post("/api/auth/reset-password-request", data);
   return response.data;
 };
 
 export const resetPassword = async (data) => {
-  const response = await api.post("/reset-password", data);
+  const response = await api.post("/api/auth/reset-password", data);
   return response.data;
 };
 
 export const verifyEmail = async (data) => {
   console.log("verifyEmail: Sending request with data:", data);
-  const response = await api.post("/verify-email", data);
+  const response = await api.post("/api/auth/verify-email", data);
   console.log("verifyEmail: Response:", response.data);
   return response.data;
 };
 
 export const getCurrentUser = async () => {
   console.log("getCurrentUser: Sending request");
-  const response = await api.get("/current-user");
+  const response = await api.get("/api/auth/current-user");
   console.log("getCurrentUser: Response:", response.data);
   return response.data;
 };

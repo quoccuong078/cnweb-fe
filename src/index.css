@@ -12,6 +12,22 @@
 
 @layer utilities {
   .shadow-1 {
-    @apply drop-shadow-[-15px_15px_15px_rgba(0,0,0,0.5)];
+    @apply drop-shadow-[-15px_15px_15px_rgba(0, 0, 0, 0.5)];
   }
+}
+
+/* Xóa gạch chân và viền focus cho div với role="button" và button */
+[role="button"],
+button {
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+/* Xóa viền focus mặc định khi hover hoặc focus */
+[role="button"]:focus,
+[role="button"]:hover,
+button:focus,
+button:hover {
+  text-decoration: none !important;
+  outline: none !important;
 }
