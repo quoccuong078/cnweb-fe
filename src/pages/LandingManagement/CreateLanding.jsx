@@ -1,3 +1,4 @@
+// src/pages/LandingManagement/CreateLanding.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -30,11 +31,21 @@ const CreateLanding = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title || !slug || !template) {
-      alert("Vui lòng điền đầy đủ thông tin và chọn template!");
-      return;
-    }
-    navigate('/admin/editor');
+    if (!title || !slug || !template) return alert("Điền đầy đủ thông tin!");
+
+    const newPageData = {
+      title,
+      slug,
+      status: "draft",
+      pageSections: [],
+      pageConfiguration: {
+        customColors: "blue",
+        templateId: template === "Classic" ? 1 : template === "Modern" ? 2 : 3
+      }
+    };
+
+    console.log("Tạo trang mới với cấu trúc đúng DB:", newPageData);
+    navigate("/admin/editor");
   };
 
   const generateSlug = (text) => {
@@ -55,13 +66,13 @@ const CreateLanding = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+    <div className="bg-white rounded-xl shadow-lg p-4 lg:p-6 border border-gray-200 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-800 mb-2">
+        <h1 className="text-xl lg:text-2xl font-bold text-blue-800 mb-2">
           Tạo Trang Landing Mới
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm lg:text-base">
           Thiết kế trang landing page chuyên nghiệp chỉ trong vài phút
         </p>
       </div>
@@ -80,7 +91,7 @@ const CreateLanding = () => {
             placeholder="Nhập tiêu đề trang landing của bạn..."
             value={title}
             onChange={handleTitleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+            className="w-full border border-gray-300 rounded-lg px-3 lg:px-4 py-2 lg:py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
           />
         </div>
 
@@ -93,7 +104,7 @@ const CreateLanding = () => {
             </span>
           </label>
           <div className="flex items-center">
-            <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg px-4 py-3 text-gray-600 text-sm">
+            <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg px-3 lg:px-4 py-2 lg:py-3 text-gray-600 text-xs lg:text-sm">
               yourdomain.com/
             </span>
             <input
@@ -101,10 +112,10 @@ const CreateLanding = () => {
               placeholder="vi-du-trang-landing"
               value={slug}
               onChange={(e) => setSlug(generateSlug(e.target.value))}
-              className="flex-1 border border-gray-300 rounded-r-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              className="flex-1 border border-gray-300 rounded-r-lg px-3 lg:px-4 py-2 lg:py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
             />
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs lg:text-sm text-gray-500">
             Đường dẫn sẽ được tạo tự động từ tiêu đề, bạn có thể tùy chỉnh
           </p>
         </div>
@@ -118,7 +129,7 @@ const CreateLanding = () => {
             </span>
           </label>
 
-          <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((item) => (
               <div
                 key={item.id}
@@ -133,7 +144,7 @@ const CreateLanding = () => {
                   <img
                     src={item.preview}
                     alt={`Template ${item.name}`}
-                    className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-28 lg:h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {template === item.name && (
                     <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
@@ -144,7 +155,7 @@ const CreateLanding = () => {
                   )}
                 </div>
                 <div className="p-3">
-                  <h3 className={`font-semibold text-base mb-1 ${
+                  <h3 className={`font-semibold text-sm lg:text-base mb-1 ${
                     template === item.name ? "text-blue-700" : "text-gray-800"
                   }`}>
                     {item.name}
@@ -163,7 +174,7 @@ const CreateLanding = () => {
           <button
             type="submit"
             disabled={!title || !slug || !template}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100"
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 lg:py-3 px-4 lg:px-6 rounded-lg shadow transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100 w-full"
           >
             {title && slug && template ? (
               <span className="flex items-center justify-center gap-2">

@@ -1,3 +1,4 @@
+// src/pages/LandingManagement/LandingManagement.jsx
 import { FiEdit, FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -22,10 +23,10 @@ export default function LandingManagement() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-white rounded-xl shadow p-4 lg:p-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-blue-700">Quản lý Landing Page</h1>
+          <h1 className="text-xl lg:text-2xl font-bold text-blue-700">Quản lý Landing Page</h1>
           <p className="text-gray-500 text-sm mt-1">
             Danh sách landing page của doanh nghiệp
           </p>
@@ -33,25 +34,25 @@ export default function LandingManagement() {
 
         <button
           onClick={() => navigate("/admin/create-landing")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center"
         >
           <FiPlus size={18} /> Tạo Landing Page
         </button>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {sampleLandings.map((item) => (
           <div
             key={item.id}
             className="border rounded-xl p-4 shadow-sm hover:shadow-lg transition"
           >
-            <h3 className="text-lg font-semibold text-blue-700">{item.title}</h3>
-            <p className="text-gray-500 text-sm">URL: /{item.slug}</p>
-            <p className="text-gray-500 text-sm">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2">{item.title}</h3>
+            <p className="text-gray-500 text-sm mb-1">URL: /{item.slug}</p>
+            <p className="text-gray-500 text-sm mb-3">
               Template: <span className="font-medium">{item.template}</span>
             </p>
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center">
               <span className="text-xs text-gray-400">
                 Cập nhật: {item.updatedAt}
               </span>
