@@ -1,3 +1,4 @@
+// src/components/ProtectedRoute/ProtectedRoute.jsx
 import { useContext, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -8,39 +9,46 @@ export default function ProtectedRoute() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const publicPaths = ["/", "/auth", "/homepages", "/verify-email", "/reset-password"];
-  if (publicPaths.includes(location.pathname)) {
+  const publicPaths = ["/", "/auth", "/homepages", "/verify-email", "/reset-password", "/forgot-password"];
+  if (publicPaths.some(p => location.pathname.startsWith(p))) {
     return <Outlet />;
   }
 
   useEffect(() => {
     if (loading) return;
 
-    // Nếu chưa đăng nhập → chuyển về /auth
     if (!user) {
+      toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
       navigate("/auth", { replace: true });
       return;
     }
 
-    const isAdminPage = location.pathname.startsWith("/admin");
-    const isSuperAdminPage = location.pathname.startsWith("/superadmin");
+    const roles = user.roles || [];
+    const isSuperAdmin = roles.includes("SuperAdmin");
+    const isAdmin = roles.includes("Admin");
+    const isEditor = roles.includes("Editor");
+    const isViewer = roles.includes("Viewer");
 
-    const isAdmin = user.roles?.includes("Admin");
-    const isSuperAdmin = user.roles?.includes("SuperAdmin");
+    const isAdminRoute = location.pathname.startsWith("/admin");
+    const isSuperAdminRoute = location.pathname.startsWith("/superadmin");
 
-    if (isAdminPage && !isAdmin && !isSuperAdmin) {
-      toast.error("Bạn không có quyền truy cập khu vực Admin!");
-      navigate("/", { replace: true });
-    }
-
-    if (isSuperAdminPage && !isSuperAdmin) {
+    // SuperAdmin vào được cả 2
+    if (isSuperAdminRoute && !isSuperAdmin) {
       toast.error("Bạn không có quyền truy cập khu vực SuperAdmin!");
-      navigate("/", { replace: true });
+      navigate("/admin", { replace: true });
+      return;
     }
-  }, [user, loading, location.pathname]);
 
-  if (loading) return null;
-  if (!user) return null;
+    // Chỉ người trong tenant (Admin/Editor/Viewer/SuperAdmin) mới vào /admin
+    if (isAdminRoute && !(isSuperAdmin || isAdmin || isEditor || isViewer)) {
+      toast.error("Bạn không có quyền truy cập khu vực này!");
+      navigate("/", { replace: true });
+      return;
+    }
+
+  }, [user, loading, location.pathname, navigate]);
+
+  if (loading || !user) return null;
 
   return <Outlet />;
 }
