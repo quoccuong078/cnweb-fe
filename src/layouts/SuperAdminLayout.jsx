@@ -23,6 +23,10 @@ const SuperAdminLayout = () => {
         { name: "Quản lý người dùng", path: "/superadmin/users", icon: <FiUsers className="text-lg" /> },
         { name: "Quản lý vai trò", path: "/superadmin/roles", icon: <FiShield className="text-lg" /> },
         { name: "Thông tin cá nhân", path: "/superadmin/profile", icon: <FiShield className="text-lg" /> },
+        { name: "Đổi mật khẩu", 
+            path: "/superadmin/change-password", 
+            icon: <FiShield />,
+        },
     ];
 
     return (

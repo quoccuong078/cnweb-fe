@@ -12,6 +12,8 @@ import MainLayout from "./layouts/MainLayout.jsx";
 import SuperAdminLayout from "./layouts/SuperAdminLayout.jsx";
 
 import Dashboard from "./pages/admin/Dashboard.jsx";
+import StatisticsPage from "./pages/admin/StatisticsPage";
+import ChangePassword from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
 import Homepage from "./pages/Homepages/Homepage.jsx";
 import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
@@ -24,7 +26,6 @@ import RolesList from "./pages/superadmin/RolesList.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
-import StatisticsPage from "./pages/admin/StatisticsPage";
 
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
@@ -56,6 +57,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/employees" element={<EmployeeManagement />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route path="/admin/statistics" element={<StatisticsPage />} />
+              <Route path="/admin/change-password" element={<ChangePassword />} />
             </Route>
 
             {/* SuperAdmin routes */}
@@ -64,6 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin/users" element={<UserManagement />} />
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/roles" element={<RolesList />} />
+              <Route path="/superadmin/change-password" element={<ChangePassword />} />
             </Route>
           </Route>
         </Routes>

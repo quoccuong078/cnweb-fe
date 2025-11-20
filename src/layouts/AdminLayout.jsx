@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 // Import thêm icon BarChart cho thống kê
-import { FiBox, FiHome, FiLayers, FiShield, FiUsers, FiBarChart2 } from "react-icons/fi";
+import { FiBarChart2, FiBox, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
@@ -55,6 +55,11 @@ const AdminLayout = () => {
     { 
       name: "Thông tin cá nhân", 
       path: "/admin/profile", 
+      icon: <FiShield />, 
+      allowedRoles: ["Admin", "Editor", "Viewer"] 
+    },
+    { name: "Đổi mật khẩu", 
+      path: "/admin/change-password", 
       icon: <FiShield />, 
       allowedRoles: ["Admin", "Editor", "Viewer"] 
     },
