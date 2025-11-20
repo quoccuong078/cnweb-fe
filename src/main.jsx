@@ -19,6 +19,7 @@ import Homepage from "./pages/Homepages/Homepage.jsx";
 import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
 import EditorPage from "./pages/LandingManagement/EditorPage.jsx";
 import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
+import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
 import ProductList from "./pages/ProductManagement/ProductList.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
@@ -41,6 +42,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="/" element={<Homepage />} />
             <Route path="/homepages" element={<Homepage />} />
           </Route>
+
+          <Route path="/:subdomain/:slug" element={<LandingViewerPage />} />
+          <Route path="/:subdomain" element={<LandingViewerPage />} />
 
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
