@@ -1,7 +1,7 @@
 // src/layouts/AdminLayout.jsx
 import { useContext } from "react";
 import toast from "react-hot-toast";
-import { FiBarChart2, FiBox, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
+import { FiBarChart2, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -43,7 +43,6 @@ const AdminLayout = () => {
     { name: "Dashboard",           path: "/admin",                     icon: <FiHome />,       roles: ["Admin", "Editor", "Viewer"] },
     { name: "Thống kê",            path: "/admin/statistics",          icon: <FiBarChart2 />,  roles: ["Admin", "Editor", "Viewer"] },
     { name: "Quản lý Landing",     path: "/admin/landing-management",  icon: <FiLayers />,     roles: ["Admin", "Editor"] },
-    { name: "Quản lý sản phẩm",    path: "/admin/products",            icon: <FiBox />,        roles: ["Admin", "Editor"] },
     { name: "Quản lý nhân viên",   path: "/admin/employees",           icon: <FiUsers />,      roles: ["Admin"] },
     { name: "Thông tin cá nhân",   path: "/admin/profile",             icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
     { name: "Đổi mật khẩu",        path: "/admin/change-password",     icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
@@ -67,8 +66,14 @@ const AdminLayout = () => {
               className="w-14 h-14 rounded-full object-cover border-4 border-white shadow-xl"
               onError={(e) => e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`}
             />
-            <div className="flex-1 overflow-hidden">
-              <p className="font-semibold text-gray-800 truncate">{user?.email}</p>
+            <div className="flex-1 overflow-hidden group">
+              <p
+                className="font-semibold text-gray-800 truncate cursor-default"
+                title={user?.contactName || user?.email}
+              >
+                {user?.contactName || user?.email}
+              </p>
+              
               <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-xs font-bold ${config.color}`}>
                 {config.icon} {role}
               </div>

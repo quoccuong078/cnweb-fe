@@ -20,10 +20,8 @@ import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
 import EditorPage from "./pages/LandingManagement/EditorPage.jsx";
 import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
 import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
-import ProductList from "./pages/ProductManagement/ProductList.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
-import RolesList from "./pages/superadmin/RolesList.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
@@ -57,7 +55,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/landing-management" element={<LandingManagement />} />
               <Route path="/admin/create-landing" element={<CreateLanding />} />
               <Route path="/admin/editor" element={<EditorPage />} />
-              <Route path="/admin/products" element={<ProductList />} />
               <Route path="/admin/employees" element={<EmployeeManagement />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route path="/admin/statistics" element={<StatisticsPage />} />
@@ -69,7 +66,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin" element={<SuperAdminDashboard />} />
               <Route path="/superadmin/users" element={<UserManagement />} />
               <Route path="/superadmin/profile" element={<ProfilePage />} />
-              <Route path="/superadmin/roles" element={<RolesList />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
             </Route>
           </Route>

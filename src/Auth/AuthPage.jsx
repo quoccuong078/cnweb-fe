@@ -27,19 +27,20 @@ export default function AuthPage() {
 
     try {
       if (activeTab === "login") {
-      const res = await loginApi({ email, password });
+        const res = await loginApi({ email, password });
 
-      localStorage.setItem("token", res.token);
+        localStorage.setItem("token", res.token);
 
-      const userData = await getCurrentUser();
+        const userData = await getCurrentUser();
 
-      setAuth(userData, res.token);
+        setAuth(userData, res.token);
 
-      toast.success("Đăng nhập thành công!");
+        toast.success("Đăng nhập thành công!");
 
-      if (userData.roles.includes("SuperAdmin")) navigate("/superadmin");
-      else navigate("/admin");
-    }
+        if (userData.roles.includes("SuperAdmin")) navigate("/superadmin");
+        else navigate("/admin");
+      }
+      
       else if (activeTab === "register") {
         if (password !== confirmPass) {
           const errorMessage = "Mật khẩu xác nhận không khớp!";
@@ -58,22 +59,30 @@ export default function AuthPage() {
           Subdomain: subdomain,
         });
 
-        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.", { duration: 5000 });
-
-        // Người đăng ký mới luôn là Admin của tenant đó
-        setAuth(
-          {
-            email: response.email || email,
-            tenantId: response.tenantId || response.TenantId,
-            roles: response.roles || ["Admin"], // backend nên trả về ["Admin"]
-          },
-          response.token || response.Token
+        // === TOÀN BỘ PHẦN SỬA Ở ĐÂY ===
+        toast.success(
+          "Đăng ký thành công! Vui lòng kiểm tra email (và mục Spam) để kích hoạt tài khoản trước khi đăng nhập.",
+          { duration: 10000 }
         );
 
-        // Sau khi đăng ký thành công → chuyển về tab login hoặc vào admin luôn
-        navigate("/admin");
-      } 
-      else if (activeTab === "forgot") {
+        // XÓA sạch token cũ nếu có (phòng trường hợp user đang login tài khoản khác)
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // KHÔNG gọi setAuth nữa → không đăng nhập tự động
+        // Chỉ chuyển về tab login để user tự đăng nhập sau khi verify
+        setActiveTab("login");
+
+        // Reset form
+        setCompanyName("");
+        setContactName("");
+        setPhoneNumber("");
+        setSubdomain("");
+        setPassword("");
+        setConfirmPass("");
+        // ==============================
+
+      } else if (activeTab === "forgot") {
         await requestPasswordReset({ email });
         toast.success("Link đặt lại mật khẩu đã được gửi đến email của bạn.", { duration: 5000 });
         setTimeout(() => setActiveTab("login"), 3000);
@@ -82,17 +91,18 @@ export default function AuthPage() {
       console.error("Error during auth:", err);
       let errorMessage = "Có lỗi xảy ra. Vui lòng thử lại.";
 
-      if (err.response?.status === 401) {
-        errorMessage = "Email hoặc mật khẩu không đúng.";
-      } else if (err.response?.data?.Message) {
+      // Ưu tiên lấy đúng message từ backend (rất quan trọng!)
+      if (err.response?.data?.Message) {
         errorMessage = err.response.data.Message;
       } else if (err.response?.data?.Error) {
         errorMessage = err.response.data.Error;
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
+      } else if (err.response?.status === 401) {
+        errorMessage = "Email hoặc mật khẩu không đúng.";
       }
 
-      toast.error(errorMessage, { duration: 5000 });
+      toast.error(errorMessage, { duration: 6000 });
       setError(errorMessage);
     } finally {
       setLoading(false);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiBarChart2, FiFileText, FiPackage, FiUsers } from "react-icons/fi";
+import { FiBarChart2, FiFileText, FiUsers } from "react-icons/fi";
 import {
   CartesianGrid,
   Legend,
@@ -79,7 +79,6 @@ export default function Dashboard() {
           icon={<FiUsers />}
           color="blue"
         />
-        <StatCard title="Sản phẩm" value={stats?.products || 0} icon={<FiPackage />} color="green" />
         <StatCard
           title="Trang đã xuất bản"
           value={stats?.publishedPages || 0}

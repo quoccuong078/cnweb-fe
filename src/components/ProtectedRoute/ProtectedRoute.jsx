@@ -39,6 +39,12 @@ export default function ProtectedRoute() {
       return;
     }
 
+    if (user && !user.isEmailVerified && !publicPaths.some(p => location.pathname.startsWith(p))) {
+      toast.error("Vui lòng xác minh email trước khi tiếp tục!");
+      navigate("/auth");
+      return;
+    }
+
     // Chỉ người trong tenant (Admin/Editor/Viewer/SuperAdmin) mới vào /admin
     if (isAdminRoute && !(isSuperAdmin || isAdmin || isEditor || isViewer)) {
       toast.error("Bạn không có quyền truy cập khu vực này!");

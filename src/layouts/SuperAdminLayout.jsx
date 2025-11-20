@@ -34,7 +34,6 @@ const SuperAdminLayout = () => {
         { name: "Tổng quan", path: "/superadmin", icon: <FiHome className="text-lg" /> },
         { name: "Quản lý Tenant", path: "/superadmin/tenants", icon: <FiGlobe className="text-lg" /> },
         { name: "Quản lý người dùng", path: "/superadmin/users", icon: <FiUsers className="text-lg" /> },
-        { name: "Quản lý vai trò", path: "/superadmin/roles", icon: <FiShield className="text-lg" /> },
         { name: "Thông tin cá nhân", path: "/superadmin/profile", icon: <FiShield className="text-lg" /> },
         { name: "Đổi mật khẩu", path: "/superadmin/change-password", icon: <FiShield className="text-base" /> },
     ];
@@ -61,11 +60,14 @@ const SuperAdminLayout = () => {
                         />
 
                         <div className="flex-1 overflow-hidden">
-                            <p className="font-semibold text-gray-800 truncate">
-                                {user?.email}
+                            <p
+                                className="font-semibold text-gray-800 truncate cursor-default"
+                                title={user?.contactName || user?.email}
+                            >
+                                {user?.contactName || user?.email}
                             </p>
 
-                            {/* Badge giống hệt trang Admin: có icon, bo tròn, màu tím sang trọng */}
+                            {/* Badge giống hệt trang Admin */}
                             <div className={`inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm ${config.color}`}>
                                 {config.icon}
                                 {config.label}
