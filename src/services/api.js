@@ -89,4 +89,14 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+export const getMyLandings = async () => {
+  const response = await api.get("/api/tenant/landings");
+  return response.data;
+};
+
+export const getLandingForEdit = async (pageId) => {
+  const response = await api.get(`/api/tenant/landings/${pageId}`);
+  return response.data;
+};
+
 export default api;
