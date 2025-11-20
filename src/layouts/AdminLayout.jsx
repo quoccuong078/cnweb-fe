@@ -1,111 +1,139 @@
 import { useContext } from "react";
 import toast from "react-hot-toast";
-import { Link, Outlet, useLocation } from "react-router-dom"; // thêm useLocation
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-// ICONS
-import { FiBox, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
+// Import thêm icon BarChart cho thống kê
+import { FiBox, FiHome, FiLayers, FiShield, FiUsers, FiBarChart2 } from "react-icons/fi";
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
-  const location = useLocation(); // để kiểm tra active menu
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     toast.success("Đăng xuất thành công!");
   };
 
-  // Avatar fallback: nếu không có hoặc lỗi thì dùng ảnh mặc định từ API luôn
-  const avatarUrl = user?.avatar || "https://i.pravatar.cc/150"; // fallback an toàn
+  const avatarUrl = user?.avatar || `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
 
-  const menuItems = [
-    { name: "Dashboard", path: "/admin", icon: <FiHome /> },
-    { name: "Quản lý Landing", path: "/admin/landing-management", icon: <FiLayers /> },
-    { name: "Quản lý sản phẩm", path: "/admin/products", icon: <FiBox /> },
-    { name: "Quản lý nhân viên", path: "/admin/employees", icon: <FiUsers /> },
-    { name: "Thông tin cá nhân", path: "/admin/profile", icon: <FiShield /> },
+  // 1. Lấy role hiện tại của user (Mặc định là Viewer nếu không tìm thấy)
+  const currentRole = user?.roles?.[0] || "Viewer";
+
+  // 2. Định nghĩa menu với quyền truy cập (allowedRoles)
+  const allMenuItems = [
+    { 
+      name: "Dashboard", 
+      path: "/admin", 
+      icon: <FiHome />, 
+      allowedRoles: ["Admin", "Editor", "Viewer"] // Ai cũng thấy
+    },
+    { 
+      name: "Thống kê", 
+      path: "/admin/statistics", 
+      icon: <FiBarChart2 />, 
+      allowedRoles: ["Admin"] // Chỉ Admin thấy
+    },
+    { 
+      name: "Quản lý Landing", 
+      path: "/admin/landing-management", 
+      icon: <FiLayers />, 
+      allowedRoles: ["Admin", "Editor"] // Admin và Editor thấy
+    },
+    { 
+      name: "Quản lý sản phẩm", 
+      path: "/admin/products", 
+      icon: <FiBox />, 
+      allowedRoles: ["Admin", "Editor"] 
+    },
+    { 
+      name: "Quản lý nhân viên", 
+      path: "/admin/employees", 
+      icon: <FiUsers />, 
+      allowedRoles: ["Admin"] // Chỉ Admin thấy
+    },
+    { 
+      name: "Thông tin cá nhân", 
+      path: "/admin/profile", 
+      icon: <FiShield />, 
+      allowedRoles: ["Admin", "Editor", "Viewer"] 
+    },
   ];
+
+  // 3. Lọc menu dựa trên role hiện tại
+  const menuItems = allMenuItems.filter(item => item.allowedRoles.includes(currentRole));
 
   return (
     <div className="min-h-screen flex bg-gray-50 text-gray-800">
       {/* SIDEBAR */}
-      <aside className="w-64 bg-white shadow-lg border-r flex flex-col">
-        <div className="p-5 text-2xl font-bold text-blue-700 border-b">
-          FECN SaaS
+      <aside className="w-64 bg-white shadow-lg border-r flex flex-col transition-all duration-300">
+        <div className="p-5 text-2xl font-bold text-blue-700 border-b flex items-center gap-2">
+          <FiLayers /> FECN SaaS
         </div>
 
-        {/* Avatar + Email ở đầu sidebar (tùy chọn - đẹp hơn) */}
-        <div className="px-5 py-6 border-b">
+        <div className="px-5 py-6 border-b bg-blue-50/50">
           <div className="flex items-center space-x-3">
             <img
               src={avatarUrl}
               alt="Avatar"
-              className="w-12 h-12 rounded-full object-cover border-2 border-blue-600"
+              className="w-12 h-12 rounded-full object-cover border-2 border-blue-600 shadow-sm"
               onError={(e) => {
-                // Nếu ảnh lỗi → tự động fallback về profile.jpg mặc định của backend
                 e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
               }}
             />
-            <div>
-              <p className="font-semibold text-gray-800">{user?.email}</p>
-              <p className="text-xs text-gray-500 capitalize">
-                {user?.roles?.[0] || "Admin"}
-              </p>
+            <div className="overflow-hidden">
+              <p className="font-semibold text-gray-800 truncate" title={user?.email}>{user?.email}</p>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                currentRole === 'Admin' ? 'bg-blue-100 text-blue-700' : 
+                currentRole === 'Editor' ? 'bg-green-100 text-green-700' : 
+                'bg-gray-100 text-gray-600'
+              }`}>
+                {currentRole}
+              </span>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 mt-2 space-y-1">
+        <nav className="flex-1 p-3 mt-2 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                   active
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-gray-700 hover:bg-blue-100 hover:text-blue-700"
+                    ? "bg-blue-600 text-white shadow-md transform scale-[1.02]"
+                    : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-xl">{item.icon}</span>
                 {item.name}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t text-xs text-gray-500">
+        <div className="p-4 border-t text-xs text-center text-gray-400">
           © 2025 — Admin System
         </div>
       </aside>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-blue-700">Trang quản trị</h1>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-10">
+          <h1 className="text-xl font-bold text-gray-800">
+             {menuItems.find(i => i.path === location.pathname)?.name || "Trang quản trị"}
+          </h1>
 
           <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="font-medium text-gray-800">{user?.email}</p>
-              <p className="text-xs text-gray-500">
-                {user?.tenantName || "Tenant"}
-              </p>
+            <div className="text-right hidden md:block">
+              <p className="font-medium text-gray-800 text-sm">{user?.tenantName || "Tenant"}</p>
             </div>
-
-            {/* Avatar trong header */}
-            <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="w-10 h-10 rounded-full object-cover border-2 border-gray-300"
-              onError={(e) => {
-                e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
-              }}
-            />
 
             <button
               onClick={handleLogout}
-              className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition"
+              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition shadow-sm text-sm font-medium"
             >
               Đăng xuất
             </button>

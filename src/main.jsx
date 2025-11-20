@@ -24,6 +24,7 @@ import RolesList from "./pages/superadmin/RolesList.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
+import StatisticsPage from "./pages/admin/StatisticsPage";
 
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
@@ -54,6 +55,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/products" element={<ProductList />} />
               <Route path="/admin/employees" element={<EmployeeManagement />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
+              <Route path="/admin/statistics" element={<StatisticsPage />} />
             </Route>
 
             {/* SuperAdmin routes */}
