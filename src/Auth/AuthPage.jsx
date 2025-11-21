@@ -31,6 +31,14 @@ export default function AuthPage() {
 
         localStorage.setItem("token", res.token);
 
+        // // Kiểm tra có warning không
+        // if (res.warnings && res.warnings.length > 0) {
+        //   res.warnings.forEach(msg => toast(msg, { 
+        //     duration: 8000, 
+        //     style: { background: '#fff3cd', color: '#856404', border: '1px solid #ffeeba' } 
+        //   }));
+        // }
+
         const userData = await getCurrentUser();
 
         setAuth(userData, res.token);
