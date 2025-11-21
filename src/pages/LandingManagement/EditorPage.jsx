@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import EditableBlock from "../../components/Editor/EditableBlock";
 import { SortableItem } from "../../components/Editor/SortableItem";
 import api, { getLandingForEdit } from "../../services/api"; // Đảm bảo có getLandingForEdit
@@ -57,7 +57,9 @@ const colorThemes = [
 export default function EditorPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const pageId = searchParams.get("id");
+  const newPageData = location.state?.newPageData;
 
   const [page, setPage] = useState({ id: null, title: "Trang mới", slug: "trang-moi" });
   const [sections, setSections] = useState([]);
@@ -70,31 +72,51 @@ export default function EditorPage() {
   // Load dữ liệu khi có id
   useEffect(() => {
     const loadPage = async () => {
-      if (!pageId) {
-        setLoading(false);
+      if (pageId) {
+        // TRƯỜNG HỢP 1: Tải trang đã tồn tại
+        try {
+          const data = await getLandingForEdit(pageId);
+          setPage({ id: data.id, title: data.title || "Trang mới", slug: data.slug || "trang-moi" });
+          setSections(data.sections.map(s => ({
+            id: s.id || Date.now(),
+            sectionType: s.sectionType,
+            content: s.content,
+            order: s.order
+          })).sort((a, b) => a.order - b.order));
+          setSelectedColor(data.customColors || "blue");
+        } catch (err) {
+          alert("Không tải được trang. Vui lòng thử lại.");
+          navigate("/admin/landing-management");
+        } finally {
+          setLoading(false);
+        }
         return;
       }
 
-      try {
-        const data = await getLandingForEdit(pageId);
-        setPage({ id: data.id, title: data.title || "Trang mới", slug: data.slug || "trang-moi" });
-        setSections(data.sections.map(s => ({
-          id: s.id || Date.now(),
-          sectionType: s.sectionType,
-          content: s.content,
-          order: s.order
-        })).sort((a, b) => a.order - b.order));
-        setSelectedColor(data.customColors || "blue");
-      } catch (err) {
-        alert("Không tải được trang. Vui lòng thử lại.");
-        navigate("/admin/landing-management");
-      } finally {
-        setLoading(false);
+      // TRƯỜNG HỢP 2: Tạo trang mới với sections mặc định (từ CreateLanding)
+      if (newPageData) {
+        setPage({ id: null, title: newPageData.title, slug: newPageData.slug });
+        setSelectedColor(newPageData.pageConfiguration.customColors);
+
+        // Map các section type mặc định sang cấu trúc section đầy đủ
+        const defaultSections = newPageData.pageSections.map((s, index) => {
+            const template = sectionTemplates[s.sectionType.toLowerCase()];
+            return {
+                id: Date.now() + Math.random() + index, // Dùng random + index để đảm bảo id duy nhất
+                sectionType: s.sectionType,
+                content: template ? template.content : JSON.stringify({}), // Lấy nội dung mặc định từ sectionTemplates
+                order: index
+            };
+        });
+        setSections(defaultSections);
       }
+      
+      setLoading(false);
     };
 
     loadPage();
-  }, [pageId, navigate]);
+    // Bổ sung location.state để useEffect chạy lại khi chuyển từ CreateLanding
+  }, [pageId, navigate, location.state]);
 
   const addSection = (type) => {
     const template = sectionTemplates[type];
@@ -135,20 +157,41 @@ export default function EditorPage() {
       title: page.title,
       slug: page.slug,
       customColors: selectedColor,
+      // Khi lưu, payload phải giống cấu trúc đã gửi ban đầu, 
+      // đồng thời đảm bảo không gửi id cho các section mới được tạo
       pageSections: sections.map((s, idx) => ({
-        id: Number.isInteger(s.id) ? s.id : undefined,
+        // Chỉ gửi id nếu nó là number, để phân biệt section cũ đã có id từ DB
+        id: (pageId && !Number.isInteger(s.id)) ? s.id : undefined, // Giả định id từ DB là string/uuid, id mới là Number. Nếu id từ DB là Number, cần dùng logic khác, ví dụ: s.id < 1000000000
+        sectionType: s.sectionType,
+        content: s.content,
+        order: idx
+      }))
+    };
+    
+    // Cập nhật logic để đảm bảo section mới (có id là Number) không bị gửi lên id
+    const finalPayload = {
+      ...payload,
+      pageSections: sections.map((s, idx) => ({
+        // Giả định: ID tạo ra bằng Date.now() + Math.random() là một Number,
+        // ID từ DB (sau khi PUT/POST) sẽ là String/UUID. 
+        // Khi tạo mới (pageId=null), chúng ta chỉ gửi sectionType, content, order.
+        // Khi cập nhật (pageId!=null), ta chỉ gửi id cho section đã tồn tại.
+        // Tốt nhất là chỉ gửi id cho section đã tồn tại (không phải id tạo ra tạm thời)
+        id: pageId && s.id && !Number.isInteger(s.id) ? s.id : undefined, // Nếu có pageId và id không phải là số tạm thời -> là id từ DB
         sectionType: s.sectionType,
         content: s.content,
         order: idx
       }))
     };
 
+
     try {
       if (pageId) {
-        await api.put(`/api/tenant/landings/${pageId}`, payload);
+        await api.put(`/api/tenant/landings/${pageId}`, finalPayload);
       } else {
-        const res = await api.post(`/api/tenant/landings`, payload);
-        navigate(`/admin/editor?id=${res.data.id}`);
+        const res = await api.post(`/api/tenant/landings`, finalPayload);
+        // Sau khi tạo mới thành công, chuyển hướng để tải lại trang với id mới
+        navigate(`/admin/editor?id=${res.data.id}`, { replace: true, state: null }); 
       }
       alert("Lưu trang thành công!");
     } catch (err) {

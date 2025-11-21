@@ -14,18 +14,24 @@ const CreateLanding = () => {
       name: "Classic",
       description: "Giao diện cổ điển, phù hợp giới thiệu doanh nghiệp truyền thống.",
       preview: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=300&h=150&fit=crop&crop=center",
+      // THÊM: Sections mặc định cho template Classic
+      defaultSections: ["header", "hero", "about", "services", "contact", "footer"]
     },
     {
       id: 2,
       name: "Modern",
       description: "Phong cách hiện đại, tối giản, hình ảnh lớn bắt mắt.",
       preview: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=300&h=150&fit=crop&crop=center",
+      // THÊM: Sections mặc định cho template Modern
+      defaultSections: ["header", "hero", "features", "pricing", "testimonials", "footer"]
     },
     {
       id: 3,
       name: "Creative",
       description: "Thiết kế sáng tạo, hiệu ứng động, phù hợp startup công nghệ.",
       preview: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=300&h=150&fit=crop&crop=center",
+      // THÊM: Sections mặc định cho template Creative
+      defaultSections: ["header", "hero", "carousel", "stats", "team", "faq", "contact", "footer"]
     },
   ];
 
@@ -33,21 +39,34 @@ const CreateLanding = () => {
     e.preventDefault();
     if (!title || !slug || !template) return alert("Điền đầy đủ thông tin!");
 
+    // 1. TÌM TEMPLATE ĐÃ CHỌN
+    const selectedTemplate = templates.find(t => t.name === template);
+    
+    // 2. LẤY CÁC SECTION MẶC ĐỊNH
+    const defaultSections = selectedTemplate ? selectedTemplate.defaultSections : [];
+
+    // 3. CHUYỂN HƯỚNG VÀ TRUYỀN DỮ LIỆU QUA STATE
+    // Dữ liệu này sẽ được dùng khi EditorPage tạo landing mới (trường hợp không có pageId)
     const newPageData = {
       title,
       slug,
       status: "draft",
-      pageSections: [],
+      pageSections: defaultSections.map((sectionType, index) => ({ // Chỉ truyền type và order
+        sectionType,
+        order: index
+      })),
       pageConfiguration: {
         customColors: "blue",
-        templateId: template === "Classic" ? 1 : template === "Modern" ? 2 : 3
+        templateId: selectedTemplate.id,
       }
     };
 
     console.log("Tạo trang mới với cấu trúc đúng DB:", newPageData);
-    navigate("/admin/editor");
+    
+    // Gửi data sections và các thông tin khác qua state của navigate
+    navigate("/admin/editor", { state: { newPageData } });
   };
-
+  
   const generateSlug = (text) => {
     return text
       .toLowerCase()
