@@ -31,6 +31,15 @@ const sectionTemplates = {
   testimonials: { sectionType: "testimonials", content: JSON.stringify({ title: "Khách Hàng Nói Gì", testimonial1: "Tuyệt vời!", testimonial1Author: "Khách A" }) },
   pricing: { sectionType: "pricing", content: JSON.stringify({ title: "Bảng Giá", plan1: "Cơ bản", plan1Price: "499k", plan1Features: "5 trang\n100GB", plan2: "Pro", plan2Price: "999k", plan2Features: "Không giới hạn", plan2Featured: true }) },
   contact: { sectionType: "contact", content: JSON.stringify({ title: "Liên Hệ", buttonText: "Gửi tin nhắn" }) },
+  carousel: { sectionType: "carousel", content: JSON.stringify({
+      title: "Dự án nổi bật",
+      slides: [
+        { image: "", caption: "Dự án 1 - Khách hàng lớn" },
+        { image: "", caption: "Dự án 2 - Giải thưởng 2025" },
+        { image: "", caption: "Dự án 3 - Hợp tác quốc tế" }
+      ]
+    })
+  },
   footer: { sectionType: "footer", content: JSON.stringify({ logoText: "Your Brand", description: "© 2025 Công ty của bạn" }) },
 };
 
@@ -170,7 +179,7 @@ export default function EditorPage() {
                 <button
                   key={key}
                   onClick={() => addSection(key)}
-                  className="p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-400 text-left text-sm font-medium capitalize transition"
+                  className="p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-400 text-left text-xs font-medium capitalize transition"
                 >
                   {sectionTemplates[key].sectionType}
                 </button>

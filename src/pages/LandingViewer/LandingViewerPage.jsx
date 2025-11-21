@@ -5,6 +5,7 @@ import api from "../../services/api";
 
 // Import tất cả Viewer Sections
 import AboutSection from "../../components/ViewerSections/AboutSection";
+import CarouselSection from "../../components/ViewerSections/CarouselSection";
 import ContactSection from "../../components/ViewerSections/ContactSection";
 import FAQSection from "../../components/ViewerSections/FAQSection";
 import FeaturesSection from "../../components/ViewerSections/FeaturesSection";
@@ -29,6 +30,7 @@ const sectionMap = {
     pricing: PricingSection,
     faq: FAQSection,
     contact: ContactSection,
+    carousel: CarouselSection,
     footer: FooterSection,
     };
 
