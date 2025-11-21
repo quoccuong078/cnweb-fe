@@ -136,7 +136,7 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col">
         <header className="bg-white shadow p-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold text-blue-600">
-            {user?.tenantName || "Tên công ty"}
+            {user?.tenantName || (user?.tenantId ? "Tenant Dashboard" : "Admin System")}
           </h1>
 
           <div className="flex items-center space-x-4">
