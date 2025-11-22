@@ -29,6 +29,7 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import "./index.css";
+import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -65,6 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route element={<SuperAdminLayout />}>
               <Route path="/superadmin" element={<SuperAdminDashboard />} />
               <Route path="/superadmin/users" element={<UserManagement />} />
+              <Route path="/superadmin/business" element={<BusinessManagement />} />
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
             </Route>
