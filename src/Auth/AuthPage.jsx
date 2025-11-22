@@ -50,6 +50,7 @@ export default function AuthPage() {
       }
       
       else if (activeTab === "register") {
+        // 1. Kiểm tra mật khẩu (Giữ nguyên)
         if (password !== confirmPass) {
           const errorMessage = "Mật khẩu xác nhận không khớp!";
           toast.error(errorMessage, { duration: 5000 });
@@ -58,13 +59,24 @@ export default function AuthPage() {
           return;
         }
 
+        // 2. === THÊM MỚI: Kiểm tra Subdomain phải có đuôi .com ===
+        // Sử dụng .trim() để loại bỏ khoảng trắng thừa và .toLowerCase() để kiểm tra chính xác
+        if (!subdomain.trim().toLowerCase().endsWith(".com")) {
+          const errorMessage = "Subdomain phải kết thúc bằng .com (Ví dụ: mycompany.com)!";
+          toast.error(errorMessage, { duration: 5000 });
+          setError(errorMessage);
+          setLoading(false);
+          return;
+        }
+        // =========================================================
+
         const response = await signup({
           CompanyName: companyName,
           Email: email,
           Password: password,
           ContactName: contactName,
           PhoneNumber: phoneNumber,
-          Subdomain: subdomain,
+          Subdomain: subdomain.trim(), // Nên trim() khi gửi đi để tránh lỗi khoảng trắng
         });
 
         // === TOÀN BỘ PHẦN SỬA Ở ĐÂY ===
@@ -236,7 +248,7 @@ export default function AuthPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   type="text"
-                  placeholder="Nhập subdomain (VD: mycompany)"
+                  placeholder="Nhập subdomain (VD: mycompany.com)"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
                 />

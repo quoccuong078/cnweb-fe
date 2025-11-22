@@ -99,4 +99,28 @@ export const getLandingForEdit = async (pageId) => {
   return response.data;
 };
 
+// Thêm hàm upload ảnh
+export const uploadMedia = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  
+  // Content-Type phải để axios tự set khi dùng FormData
+  const response = await api.post("/api/media/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data.url; // Trả về URL ảnh từ server
+};
+
+// Tạo trang mới
+export const createLanding = async (data) => {
+  const response = await api.post("/api/tenant/landings", data);
+  return response.data;
+};
+
+// Cập nhật trang
+export const updateLanding = async (pageId, data) => {
+  const response = await api.put(`/api/tenant/landings/${pageId}`, data);
+  return response.data;
+};
+
 export default api;

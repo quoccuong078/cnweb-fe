@@ -14,12 +14,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
+import { FiArrowLeft, FiGlobe, FiSave } from "react-icons/fi"; // Thêm icon ArrowLeft
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import EditableBlock from "../../components/Editor/EditableBlock";
 import { SortableItem } from "../../components/Editor/SortableItem";
-import api, { getLandingForEdit } from "../../services/api"; // Đảm bảo có getLandingForEdit
+import { createLanding, getCurrentUser, getLandingForEdit, updateLanding } from "../../services/api";
 
-// Template mặc định khi thêm section mới
+// ... (Giữ nguyên phần sectionTemplates và colorThemes như cũ)
 const sectionTemplates = {
   header: { sectionType: "header", content: JSON.stringify({ logoText: "Your Brand", menu1: "Trang chủ", menu2: "Giới thiệu", menu3: "Dịch vụ", menu4: "Liên hệ", buttonText: "Liên hệ" }) },
   hero: { sectionType: "hero", content: JSON.stringify({ title: "Chào mừng đến với chúng tôi", subtitle: "Giải pháp toàn diện cho doanh nghiệp", buttonText: "Bắt đầu ngay" }) },
@@ -61,7 +62,14 @@ export default function EditorPage() {
   const pageId = searchParams.get("id");
   const newPageData = location.state?.newPageData;
 
-  const [page, setPage] = useState({ id: null, title: "Trang mới", slug: "trang-moi" });
+  const [page, setPage] = useState({ 
+      id: null, 
+      title: "Trang mới", 
+      slug: "trang-moi",
+      templateId: 1,
+      subdomain: "",
+      status: "Draft" 
+  });
   const [sections, setSections] = useState([]);
   const [selectedColor, setSelectedColor] = useState("blue");
   const [loading, setLoading] = useState(true);
@@ -69,20 +77,37 @@ export default function EditorPage() {
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
-  // Load dữ liệu khi có id
+  // Load dữ liệu (Giữ nguyên logic)
   useEffect(() => {
     const loadPage = async () => {
       if (pageId) {
-        // TRƯỜNG HỢP 1: Tải trang đã tồn tại
         try {
           const data = await getLandingForEdit(pageId);
-          setPage({ id: data.id, title: data.title || "Trang mới", slug: data.slug || "trang-moi" });
+          let currentSubdomain = data.pageConfiguration?.subdomain;
+          
+          if (!currentSubdomain) {
+             try {
+                const user = await getCurrentUser();
+                currentSubdomain = user.subdomain || user.tenantSubdomain || "";
+             } catch(e) { console.warn("Lỗi lấy subdomain"); }
+          }
+
+          setPage({ 
+            id: data.id, 
+            title: data.title, 
+            slug: data.slug,
+            templateId: data.pageConfiguration?.templateId || 1,
+            subdomain: currentSubdomain,
+            status: data.status || "Draft"
+          });
+
           setSections(data.sections.map(s => ({
             id: s.id || Date.now(),
             sectionType: s.sectionType,
             content: s.content,
             order: s.order
           })).sort((a, b) => a.order - b.order));
+          
           setSelectedColor(data.customColors || "blue");
         } catch (err) {
           alert("Không tải được trang. Vui lòng thử lại.");
@@ -93,35 +118,37 @@ export default function EditorPage() {
         return;
       }
 
-      // TRƯỜNG HỢP 2: Tạo trang mới với sections mặc định (từ CreateLanding)
       if (newPageData) {
-        setPage({ id: null, title: newPageData.title, slug: newPageData.slug });
+        setPage({ 
+            id: null, 
+            title: newPageData.title, 
+            slug: newPageData.slug,
+            templateId: newPageData.pageConfiguration?.templateId || 1,
+            subdomain: newPageData.pageConfiguration?.subdomain || "",
+            status: "Draft"
+        });
+        
         setSelectedColor(newPageData.pageConfiguration.customColors);
-
-        // Map các section type mặc định sang cấu trúc section đầy đủ
         const defaultSections = newPageData.pageSections.map((s, index) => {
             const template = sectionTemplates[s.sectionType.toLowerCase()];
             return {
-                id: Date.now() + Math.random() + index, // Dùng random + index để đảm bảo id duy nhất
+                id: Date.now() + Math.random() + index, 
                 sectionType: s.sectionType,
-                content: template ? template.content : JSON.stringify({}), // Lấy nội dung mặc định từ sectionTemplates
+                content: template ? template.content : JSON.stringify({}), 
                 order: index
             };
         });
         setSections(defaultSections);
       }
-      
       setLoading(false);
     };
-
     loadPage();
-    // Bổ sung location.state để useEffect chạy lại khi chuyển từ CreateLanding
   }, [pageId, navigate, location.state]);
 
+  // Các hàm xử lý section (Giữ nguyên)
   const addSection = (type) => {
     const template = sectionTemplates[type];
     if (!template) return;
-
     const newSection = {
       id: Date.now() + Math.random(),
       sectionType: template.sectionType,
@@ -142,7 +169,6 @@ export default function EditorPage() {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
     setSections(prev => {
       const oldIdx = prev.findIndex(s => s.id === active.id);
       const newIdx = prev.findIndex(s => s.id === over.id);
@@ -156,47 +182,31 @@ export default function EditorPage() {
     const payload = {
       title: page.title,
       slug: page.slug,
+      status: page.status,
       customColors: selectedColor,
-      // Khi lưu, payload phải giống cấu trúc đã gửi ban đầu, 
-      // đồng thời đảm bảo không gửi id cho các section mới được tạo
+      templateId: page.templateId, 
+      subdomain: page.subdomain,   
       pageSections: sections.map((s, idx) => ({
-        // Chỉ gửi id nếu nó là number, để phân biệt section cũ đã có id từ DB
-        id: (pageId && !Number.isInteger(s.id)) ? s.id : undefined, // Giả định id từ DB là string/uuid, id mới là Number. Nếu id từ DB là Number, cần dùng logic khác, ví dụ: s.id < 1000000000
+        id: (s.id > 2000000000) ? null : s.id, 
         sectionType: s.sectionType,
-        content: s.content,
+        content: typeof s.content === 'string' ? s.content : JSON.stringify(s.content), 
         order: idx
       }))
     };
-    
-    // Cập nhật logic để đảm bảo section mới (có id là Number) không bị gửi lên id
-    const finalPayload = {
-      ...payload,
-      pageSections: sections.map((s, idx) => ({
-        // Giả định: ID tạo ra bằng Date.now() + Math.random() là một Number,
-        // ID từ DB (sau khi PUT/POST) sẽ là String/UUID. 
-        // Khi tạo mới (pageId=null), chúng ta chỉ gửi sectionType, content, order.
-        // Khi cập nhật (pageId!=null), ta chỉ gửi id cho section đã tồn tại.
-        // Tốt nhất là chỉ gửi id cho section đã tồn tại (không phải id tạo ra tạm thời)
-        id: pageId && s.id && !Number.isInteger(s.id) ? s.id : undefined, // Nếu có pageId và id không phải là số tạm thời -> là id từ DB
-        sectionType: s.sectionType,
-        content: s.content,
-        order: idx
-      }))
-    };
-
 
     try {
       if (pageId) {
-        await api.put(`/api/tenant/landings/${pageId}`, finalPayload);
+        await updateLanding(pageId, payload);
+        alert("Cập nhật trang thành công!");
       } else {
-        const res = await api.post(`/api/tenant/landings`, finalPayload);
-        // Sau khi tạo mới thành công, chuyển hướng để tải lại trang với id mới
-        navigate(`/admin/editor?id=${res.data.id}`, { replace: true, state: null }); 
+        const res = await createLanding(payload);
+        alert("Tạo trang mới thành công!");
+        navigate(`/admin/editor?id=${res.id}`, { replace: true });
+        setPage(prev => ({ ...prev, id: res.id }));
       }
-      alert("Lưu trang thành công!");
     } catch (err) {
-      console.error(err);
-      alert("Lưu thất bại. Vui lòng thử lại.");
+      console.error("Lỗi lưu trang:", err);
+      alert("Lưu thất bại: " + (err.response?.data?.message || err.message));
     } finally {
       setSaving(false);
     }
@@ -211,88 +221,173 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="lg:w-80 bg-white shadow-lg">
-        <div className="sticky top-0 h-screen overflow-y-auto p-6 space-y-6">
-          <div className="bg-gray-50 rounded-xl p-5">
-            <h2 className="text-lg font-bold mb-4">Thêm khối nội dung</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.keys(sectionTemplates).map(key => (
-                <button
-                  key={key}
-                  onClick={() => addSection(key)}
-                  className="p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-400 text-left text-xs font-medium capitalize transition"
-                >
-                  {sectionTemplates[key].sectionType}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-5">
-            <h2 className="text-lg font-bold mb-4">Màu chủ đạo</h2>
-            <div className="grid grid-cols-4 gap-4">
-              {colorThemes.map(c => (
-                <button
-                  key={c.value}
-                  onClick={() => setSelectedColor(c.value)}
-                  className={`w-14 h-14 rounded-full bg-${c.value}-500 border-4 transition-all hover:scale-110 ${
-                    selectedColor === c.value ? "border-black shadow-xl scale-110" : "border-gray-300"
-                  }`}
-                  title={c.name}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Canvas */}
-      <div className="flex-1 p-6">
-        <div className="bg-white rounded-2xl shadow-xl">
-          <div className="p-6 border-b flex justify-between items-center">
-            <input
-              type="text"
-              value={page.title}
-              onChange={e => setPage(prev => ({ ...prev, title: e.target.value }))}
-              className="text-3xl font-bold outline-none"
-              placeholder="Tiêu đề trang"
-            />
+    // SỬ DỤNG FLEX ROW CHO TOÀN TRANG, H-SCREEN ĐỂ KHÔNG BỊ SCROLL BODY
+    <div className="flex flex-row h-screen bg-gray-100 overflow-hidden">
+      
+      {/* === 1. SIDEBAR (CỐ ĐỊNH, KHÔNG SCROLL THEO TRANG) === */}
+      <aside className="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0 z-30 shadow-xl">
+        {/* Nút quay lại nằm ngay đầu Sidebar */}
+        <div className="p-4 border-b border-gray-100">
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-bold transition"
+                onClick={() => navigate("/admin/landing-management")}
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors w-full font-medium"
             >
-              {saving ? "Đang lưu..." : "Lưu Trang"}
+                <FiArrowLeft className="w-5 h-5" />
+                Quay lại quản lý
             </button>
-          </div>
+        </div>
 
-          <div className="p-8">
-            {sections.length === 0 ? (
-              <div className="text-center py-24 text-gray-400">
-                <p className="text-2xl mb-4">Chưa có nội dung</p>
-                <p>Chọn một khối từ bên trái để bắt đầu</p>
-              </div>
-            ) : (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-8">
-                    {sections.map(section => (
-                      <SortableItem key={section.id} id={section.id}>
-                        <EditableBlock
-                          section={section}
-                          selectedColor={selectedColor}
-                          onUpdate={(content) => updateSection(section.id, content)}
-                          onRemove={() => removeSection(section.id)}
-                        />
-                      </SortableItem>
+        {/* Phần nội dung cuộn được bên trong Sidebar */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+            {/* Chọn Template */}
+            <div>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Thêm thành phần</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    {Object.keys(sectionTemplates).map(key => (
+                    <button
+                        key={key}
+                        onClick={() => addSection(key)}
+                        className="px-3 py-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-500 hover:shadow-md hover:text-blue-700 text-left text-sm font-medium capitalize transition-all duration-200 bg-white"
+                    >
+                        {sectionTemplates[key].sectionType}
+                    </button>
                     ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-            )}
-          </div>
+                </div>
+            </div>
+
+            {/* Chọn Màu */}
+            <div>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Màu chủ đạo</h3>
+                <div className="grid grid-cols-4 gap-3">
+                    {colorThemes.map(c => (
+                    <button
+                        key={c.value}
+                        onClick={() => setSelectedColor(c.value)}
+                        className={`w-12 h-12 rounded-full bg-${c.value}-500 border-2 transition-all ${
+                        selectedColor === c.value 
+                            ? "border-gray-800 ring-2 ring-offset-2 ring-gray-300 scale-110" 
+                            : "border-transparent hover:scale-105"
+                        }`}
+                        title={c.name}
+                    />
+                    ))}
+                </div>
+            </div>
+        </div>
+      </aside>
+
+      {/* === 2. MAIN AREA (HEADER + CANVAS) === */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen">
+        
+        {/* HEADER CẢI TIẾN: Gọn gàng hơn, tách biệt Input và Action */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm z-20 shrink-0 h-24">
+            
+            {/* Cụm Thông tin trang (Title + Slug) - Xếp dọc */}
+            <div className="flex flex-col justify-center flex-1 max-w-2xl mr-8">
+                {/* Input Title: To, đậm, không viền (nhìn giống text thường) */}
+                <input
+                    type="text"
+                    value={page.title}
+                    onChange={e => setPage(prev => ({ ...prev, title: e.target.value }))}
+                    className="text-2xl font-bold text-gray-800 placeholder-gray-300 bg-transparent outline-none border-none p-0 focus:ring-0 w-full mb-1 hover:bg-gray-50 rounded px-1 -ml-1 transition-colors"
+                    placeholder="Nhập tiêu đề trang..."
+                />
+                
+                {/* Input Slug: Nhỏ, màu xám */}
+                <div className="flex items-center text-sm text-gray-500 group">
+                    <FiGlobe className="mr-1.5 text-gray-400 group-hover:text-blue-500" />
+                    <span className="select-none text-gray-400">{page.subdomain}/</span>
+                    <input
+                        type="text"
+                        value={page.slug}
+                        onChange={e => setPage(prev => ({ ...prev, slug: e.target.value }))}
+                        className="bg-transparent outline-none text-gray-600 font-medium hover:text-blue-600 focus:text-blue-600 min-w-[50px] ml-0.5 border-b border-transparent hover:border-gray-300 focus:border-blue-500 transition-all px-1"
+                        placeholder="duong-dan-url"
+                    />
+                </div>
+            </div>
+
+            {/* Cụm Action (Status + Save) */}
+            <div className="flex items-center gap-4">
+                {/* Switch Trạng thái */}
+                <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
+                     <button
+                        onClick={() => setPage(prev => ({ ...prev, status: "Draft" }))}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                            page.status === "Draft" 
+                                ? "bg-white text-gray-800 shadow-sm" 
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Nháp
+                    </button>
+                    <button
+                        onClick={() => setPage(prev => ({ ...prev, status: "Published" }))}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                            page.status === "Published" 
+                                ? "bg-green-500 text-white shadow-sm" 
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Public
+                    </button>
+                </div>
+
+                <div className="h-8 w-px bg-gray-200"></div>
+
+                {/* Nút Lưu */}
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-lg font-semibold shadow-lg shadow-blue-200 transition-all active:scale-95"
+                >
+                    {saving ? (
+                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    ) : (
+                        <>
+                            <FiSave className="text-xl" />
+                            <span>Lưu thay đổi</span>
+                        </>
+                    )}
+                </button>
+            </div>
+        </header>
+
+        {/* CANVAS EDITOR (SCROLLABLE AREA) */}
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-8">
+            <div className="max-w-5xl mx-auto min-h-[800px] mb-20"> {/* Margin bottom để không bị sát đáy khi cuộn hết */}
+                {sections.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-40 bg-white rounded-xl border-2 border-dashed border-gray-300 text-gray-400">
+                    <div className="bg-gray-50 p-4 rounded-full mb-4">
+                        <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                        </svg>
+                    </div>
+                    <p className="text-xl font-medium mb-2">Trang chưa có nội dung</p>
+                    <p className="text-sm">Chọn các thành phần từ cột bên trái để bắt đầu thiết kế</p>
+                </div>
+                ) : (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                    <div className="bg-white shadow-xl rounded-xl overflow-hidden ring-1 ring-black/5">
+                        {sections.map(section => (
+                        <SortableItem key={section.id} id={section.id}>
+                            <EditableBlock
+                            section={section}
+                            selectedColor={selectedColor}
+                            onUpdate={(content) => updateSection(section.id, content)}
+                            onRemove={() => removeSection(section.id)}
+                            />
+                        </SortableItem>
+                        ))}
+                    </div>
+                    </SortableContext>
+                </DndContext>
+                )}
+            </div>
         </div>
       </div>
     </div>

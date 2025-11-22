@@ -1,5 +1,5 @@
 // src/pages/LandingViewer/LandingViewerPage.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../services/api";
 
@@ -32,9 +32,9 @@ const sectionMap = {
     contact: ContactSection,
     carousel: CarouselSection,
     footer: FooterSection,
-    };
+};
 
-    export default function LandingViewerPage() {
+export default function LandingViewerPage() {
     const { subdomain, slug } = useParams();
     const effectiveSlug = slug || "trang-chu";
 
@@ -43,11 +43,41 @@ const sectionMap = {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // 1. Tạo biến ref để đánh dấu
+    const hasFetched = useRef(false);
+
     useEffect(() => {
-        const fetchData = async () => {
+    // 2. Nếu đã fetch rồi thì dừng lại ngay, không chạy code bên dưới nữa
+    // Lưu ý: Reset hasFetched khi subdomain hoặc slug thay đổi để nó load trang mới
+    if (hasFetched.current === `${subdomain}-${slug}`) return;
+    
+    const fetchData = async () => {
         try {
-            const res = await api.get(`/landing/${subdomain}`);
-            const data = res.data;
+        // Đánh dấu là đã đang chạy cho trang này
+        hasFetched.current = `${subdomain}-${slug}`;
+            // 1. Logic xác định Unique Visitor (Sử dụng localStorage)
+            // Key lưu trữ: "visited_{subdomain}_{date}"
+            const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+            const visitKey = `visited_${subdomain}_${today}`;
+            const hasVisitedToday = localStorage.getItem(visitKey);
+            
+            // Nếu chưa có key -> Là khách unique
+            const isUnique = !hasVisitedToday;
+
+            // Lưu lại trạng thái đã visit
+            if (isUnique) {
+            localStorage.setItem(visitKey, "true");
+        }
+
+        // 2. Gọi API kèm theo Header xác định Unique và Nguồn truy cập (Referer)
+        const res = await api.get(`/landing/${subdomain}/${effectiveSlug}`, {
+                    headers: {
+                        "X-Is-Unique": isUnique ? "true" : "false",
+                        "X-Source": document.referrer || "Direct"
+                    }
+                });
+
+        const data = res.data;
 
             console.log("Backend trả về:", data);
 

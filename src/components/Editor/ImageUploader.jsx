@@ -1,16 +1,30 @@
 // src/components/Editor/ImageUploader.jsx
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { uploadMedia } from "../../services/api"; // Import API upload
 
 const ImageUploader = ({ currentImage = "", onImageChange, className = "" }) => {
     const fileInputRef = useRef(null);
+    const [uploading, setUploading] = useState(false);
 
-    const handleUpload = (e) => {
+    const handleUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (ev) => onImageChange(ev.target.result);
-        reader.readAsDataURL(file);
+        try {
+            setUploading(true);
+            // Gọi API upload lên server
+            const imageUrl = await uploadMedia(file);
+            
+            // Trả về URL thay vì Base64
+            onImageChange(imageUrl);
+        } catch (error) {
+            console.error("Upload failed:", error);
+            alert("Lỗi tải ảnh lên server.");
+        } finally {
+            setUploading(false);
+            // Reset input để cho phép chọn lại file giống cũ nếu cần
+            if(fileInputRef.current) fileInputRef.current.value = "";
+        }
     };
 
     const handleRemove = () => onImageChange("");
@@ -22,7 +36,7 @@ const ImageUploader = ({ currentImage = "", onImageChange, className = "" }) => 
                     <img
                         src={currentImage}
                         alt="Uploaded"
-                        className="w-full h-full object-cover rounded-lg border-2 border-gray-300" // ← THÊM object-cover
+                        className="w-full h-full object-cover rounded-lg border-2 border-gray-300"
                     />
                     <button
                         onClick={handleRemove}
@@ -35,9 +49,14 @@ const ImageUploader = ({ currentImage = "", onImageChange, className = "" }) => 
                 <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
                     className="w-full h-full border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-gray-400 hover:border-gray-600 hover:text-gray-600 transition bg-gray-50"
                 >
-                    <span className="text-5xl">+</span>
+                    {uploading ? (
+                        <span className="text-xs font-semibold animate-pulse">Đang tải...</span>
+                    ) : (
+                        <span className="text-5xl">+</span>
+                    )}
                 </button>
             )}
             <input
@@ -47,7 +66,6 @@ const ImageUploader = ({ currentImage = "", onImageChange, className = "" }) => 
                 accept="image/*"
                 className="hidden"
             />
-            {!currentImage && <span className="text-xs text-gray-500 mt-2">Click để upload ảnh</span>}
         </div>
     );
 };
