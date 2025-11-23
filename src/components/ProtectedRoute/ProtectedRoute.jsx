@@ -9,7 +9,12 @@ export default function ProtectedRoute() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const publicPaths = ["/", "/auth", "/homepages", "/verify-email", "/reset-password", "/forgot-password"];
+  // Các route công khai (không cần login)
+  const publicPaths = [
+    "/", "/auth", "/homepages", "/verify-email", 
+    "/reset-password", "/forgot-password"
+  ];
+
   if (publicPaths.some(p => location.pathname.startsWith(p))) {
     return <Outlet />;
   }
@@ -32,25 +37,23 @@ export default function ProtectedRoute() {
     const isAdminRoute = location.pathname.startsWith("/admin");
     const isSuperAdminRoute = location.pathname.startsWith("/superadmin");
 
-    // SuperAdmin vào được cả 2
+    // 1. SuperAdmin mới vào được /superadmin
     if (isSuperAdminRoute && !isSuperAdmin) {
       toast.error("Bạn không có quyền truy cập khu vực SuperAdmin!");
       navigate("/admin", { replace: true });
       return;
     }
 
-    if (user && !user.isEmailVerified && !publicPaths.some(p => location.pathname.startsWith(p))) {
-      toast.error("Vui lòng xác minh email trước khi tiếp tục!");
-      navigate("/auth");
-      return;
-    }
-
-    // Chỉ người trong tenant (Admin/Editor/Viewer/SuperAdmin) mới vào /admin
+    // 2. Chỉ người có quyền trong tenant mới vào được /admin
+    // → Người vừa đăng ký đã là Admin → được vào ngay
     if (isAdminRoute && !(isSuperAdmin || isAdmin || isEditor || isViewer)) {
-      toast.error("Bạn không có quyền truy cập khu vực này!");
+      toast.error("Bạn không có quyền truy cập khu vực quản trị!");
       navigate("/", { replace: true });
       return;
     }
+
+    // ===> ĐÃ BỎ HOÀN TOÀN VIỆC CHẶN KHI CHƯA VERIFY EMAIL <===
+    // Bây giờ cảnh báo sẽ hiển thị trong AdminLayout thay vì chặn cứng
 
   }, [user, loading, location.pathname, navigate]);
 

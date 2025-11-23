@@ -1,5 +1,6 @@
 // src/components/Editor/EditableBlock.jsx
 import { useState } from "react";
+import CarouselSection from "../ViewerSections/CarouselSection"; // ← THÊM DÒNG NÀY
 import ImageUploader from "./ImageUploader";
 import { getColorClasses } from "./utils/getColorClasses";
 
@@ -541,6 +542,68 @@ const EditableBlock = ({ section, selectedColor = "blue", onUpdate, onRemove }) 
               </button>
             </form>
           </div>
+        );
+
+      case "carousel":
+        return isEditing ? (
+          <div className="bg-gray-50 p-8 rounded-xl">
+            <input
+              value={data.title || ""}
+              onChange={(e) => updateField("title", e.target.value)}
+              className="text-3xl font-bold w-full mb-6 text-center border-b-2 border-gray-300 focus:outline-none"
+              placeholder="Tiêu đề carousel"
+            />
+            <div className="space-y-6">
+              {((data.slides && Array.isArray(data.slides)) ? data.slides : [{ image: "", caption: "" }]).map((slide, i) => (
+                <div key={i} className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-white">
+                  <p className="text-sm font-medium mb-3">Slide {i + 1}</p>
+                  <ImageUploader
+                    currentImage={slide.image}
+                    onImageChange={(url) => {
+                      const newSlides = [...(data.slides || [])];
+                      if (!newSlides[i]) newSlides[i] = {};
+                      newSlides[i].image = url;
+                      updateField("slides", newSlides);
+                    }}
+                    className="w-full h-64 mb-4"
+                  />
+                  <input
+                    value={slide.caption || ""}
+                    onChange={(e) => {
+                      const newSlides = [...(data.slides || [])];
+                      if (!newSlides[i]) newSlides[i] = { image: slide.image || "" };
+                      newSlides[i].caption = e.target.value;
+                      updateField("slides", newSlides);
+                    }}
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none"
+                    placeholder="Chú thích ảnh"
+                  />
+                  {data.slides && data.slides.length > 1 && (
+                    <button
+                      onClick={() => {
+                        const newSlides = data.slides.filter((_, idx) => idx !== i);
+                        updateField("slides", newSlides);
+                      }}
+                      className="mt-3 text-red-600 text-sm hover:underline"
+                    >
+                      Xóa slide
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const newSlides = [...(data.slides || []), { image: "", caption: "" }];
+                  updateField("slides", newSlides);
+                }}
+                className="w-full py-3 border-2 border-dashed border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+              >
+                + Thêm slide mới
+              </button>
+            </div>
+          </div>
+        ) : (
+          <CarouselSection data={data} color={selectedColor} />
         );
 
       /* ====================== FOOTER ====================== */

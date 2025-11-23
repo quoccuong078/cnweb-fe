@@ -1,6 +1,6 @@
 // src/pages/LandingManagement/LandingManagement.jsx
 import { useEffect, useState } from "react";
-import { FiEdit, FiEye, FiPlus } from "react-icons/fi";
+import { FiCheckCircle, FiCircle, FiEdit, FiEye, FiPlus } from "react-icons/fi"; // Import thêm icon
 import { useNavigate } from "react-router-dom";
 import { getMyLandings } from "../../services/api";
 
@@ -23,6 +23,22 @@ export default function LandingManagement() {
     };
     fetchLandings();
   }, []);
+
+  // Hàm render badge trạng thái
+  const renderStatusBadge = (status) => {
+    if (status === "Published") {
+      return (
+        <span className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold border border-green-200">
+          <FiCheckCircle /> Đã xuất bản
+        </span>
+      );
+    }
+    return (
+      <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-bold border border-gray-200">
+        <FiCircle /> Bản nháp
+      </span>
+    );
+  };
 
   if (loading) {
     return (
@@ -64,27 +80,32 @@ export default function LandingManagement() {
           {landings.map((item) => (
             <div
               key={item.id}
-              className="border rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group"
+              className="border rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group bg-white"
             >
-              <h3 className="text-lg font-bold text-blue-700 mb-3">{item.title}</h3>
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="text-lg font-bold text-blue-700 truncate flex-1 pr-2">{item.title}</h3>
+                {renderStatusBadge(item.status)}
+              </div>
               
               <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <p>URL: <span className="font-medium">/{item.subdomain}/{item.slug}</span></p>
+                <p className="truncate" title={`/${item.subdomain}/${item.slug}`}>
+                    URL: <span className="font-medium text-gray-800">/{item.subdomain}/{item.slug}</span>
+                </p>
                 <p>Template: <span className="font-medium text-purple-600">{item.template}</span></p>
                 <p>Màu: <span className={`font-medium text-${item.customColors}-600`}>{item.customColors}</span></p>
-                <p className="text-xs">Cập nhật: {item.updatedAt}</p>
+                <p className="text-xs text-gray-400 mt-2">Cập nhật: {item.updatedAt}</p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => window.open(`/${item.subdomain}/${item.slug}`, "_blank")}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium"
+                  className="flex-1 bg-white border border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold transition"
                 >
                   <FiEye /> Xem
                 </button>
                 <button
                   onClick={() => navigate(`/admin/editor?id=${item.id}`)}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition"
                 >
                   <FiEdit /> Sửa
                 </button>

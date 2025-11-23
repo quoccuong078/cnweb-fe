@@ -32,7 +32,7 @@ const SuperAdminLayout = () => {
 
     const menuItems = [
         { name: "Tổng quan", path: "/superadmin", icon: <FiHome className="text-lg" /> },
-        { name: "Quản lý Tenant", path: "/superadmin/tenants", icon: <FiGlobe className="text-lg" /> },
+        { name: "Quản lý doanh nghiệp", path: "/superadmin/business", icon: <FiGlobe className="text-lg" /> },
         { name: "Quản lý người dùng", path: "/superadmin/users", icon: <FiUsers className="text-lg" /> },
         { name: "Thông tin cá nhân", path: "/superadmin/profile", icon: <FiShield className="text-lg" /> },
         { name: "Đổi mật khẩu", path: "/superadmin/change-password", icon: <FiShield className="text-base" /> },
@@ -41,7 +41,7 @@ const SuperAdminLayout = () => {
     return (
         <div className="min-h-screen flex bg-gray-50 text-gray-800">
             {/* SIDEBAR */}
-            <aside className="w-64 bg-white shadow-lg border-r flex flex-col">
+            <aside className="w-70 bg-white shadow-lg border-r flex flex-col">
                 {/* Logo */}
                 <div className="p-5 text-2xl font-bold text-purple-700 border-b flex items-center gap-2">
                     <FiLayers /> FECN SaaS

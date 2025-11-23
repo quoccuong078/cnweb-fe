@@ -1,47 +1,80 @@
 // src/layouts/AdminLayout.jsx
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { FiBarChart2, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
+import { FiAlertCircle, FiBarChart2, FiCreditCard, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const AdminLayout = () => {
   const { user, logout } = useContext(AuthContext);
   const location = useLocation();
+  
+  // Dùng ref để đảm bảo toast chỉ hiện 1 lần duy nhất
+  const hasShownVerifyToast = useRef(false);
 
-  // Logout đã được sửa ở AuthContext → chỉ cần gọi
+  useEffect(() => {
+    if (user && !user.isEmailVerified && !hasShownVerifyToast.current) {
+      hasShownVerifyToast.current = true; // Đánh dấu đã hiện
+
+      toast(
+        (t) => (
+          <div className="flex items-start gap-4 max-w-lg">
+            <FiAlertCircle className="text-4xl text-orange-600 flex-shrink-0 mt-1" />
+            <div>
+              <p className="font-bold text-lg text-orange-900">Email chưa được xác minh!</p>
+              <p className="text-sm text-gray-700 mt-1">
+                Vui lòng kiểm tra hộp thư <strong>(bao gồm mục Spam/Junk)</strong> để nhận link kích hoạt tài khoản.
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Sau khi xác minh, bạn sẽ được sử dụng đầy đủ các tính năng.
+              </p>
+            </div>
+          </div>
+        ),
+        {
+          id: "email-not-verified", // Đảm bảo không bị duplicate dù re-render
+          duration: 5000,
+          position: "top-center",
+          style: {
+            background: "#fffaeb",
+            border: "2px solid #f97316",
+            borderRadius: "16px",
+            padding: "20px",
+            boxShadow: "0 10px 25px rgba(249, 115, 22, 0.2)",
+          },
+        }
+      );
+    }
+  }, [user?.isEmailVerified]);
+
   const handleLogout = () => {
-    logout(); // → tự động về /auth
+    logout();
     toast.success("Đăng xuất thành công!");
   };
 
-  // Avatar sửa lỗi undefined
   const getAvatarUrl = () => {
     if (!user?.avatar || user.avatar === "profile.jpg") {
       return `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
     }
     if (user.avatar.startsWith("http")) return user.avatar;
-    return `${import.meta.env.VITE_API_URL}/avatars/${user.avatar}`;
+    return `${import.meta.env.VITE_API_URL}/avatar/${user.avatar}`;
   };
 
   const avatarUrl = getAvatarUrl();
-
-  // Chỉ lấy role trong tenant: Admin, Editor, Viewer
   const role = user?.roles?.[0] || "Viewer";
 
-  // Không có SuperAdmin ở đây nữa
   const roleConfig = {
-    Admin:  { color: "bg-blue-100 text-blue-700",     icon: <FiShield className="text-lg" /> },
-    Editor: { color: "bg-green-100 text-green-700",   icon: <FiEdit3 className="text-lg" /> },
-    Viewer: { color: "bg-orange-100 text-orange-700", icon: <FiEye className="text-lg" /> },
+    Admin:   { color: "bg-blue-100 text-blue-700",     icon: <FiShield className="text-lg" /> },
+    Editor:  { color: "bg-green-100 text-green-700",   icon: <FiEdit3 className="text-lg" /> },
+    Viewer:  { color: "bg-orange-100 text-orange-700", icon: <FiEye className="text-lg" /> },
   };
 
   const config = roleConfig[role] || roleConfig.Viewer;
 
-  // Menu chỉ dành cho tenant
   const menuItems = [
     { name: "Dashboard",           path: "/admin",                     icon: <FiHome />,       roles: ["Admin", "Editor", "Viewer"] },
     { name: "Thống kê",            path: "/admin/statistics",          icon: <FiBarChart2 />,  roles: ["Admin", "Editor", "Viewer"] },
+    { name: "Gói cước & Dịch vụ",  path: "/admin/subscription",        icon: <FiCreditCard />, roles: ["Admin"] },
     { name: "Quản lý Landing",     path: "/admin/landing-management",  icon: <FiLayers />,     roles: ["Admin", "Editor"] },
     { name: "Quản lý nhân viên",   path: "/admin/employees",           icon: <FiUsers />,      roles: ["Admin"] },
     { name: "Thông tin cá nhân",   path: "/admin/profile",             icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
@@ -66,16 +99,20 @@ const AdminLayout = () => {
               className="w-14 h-14 rounded-full object-cover border-4 border-white shadow-xl"
               onError={(e) => e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`}
             />
-            <div className="flex-1 overflow-hidden group">
-              <p
-                className="font-semibold text-gray-800 truncate cursor-default"
-                title={user?.contactName || user?.email}
-              >
+            <div className="flex-1 overflow-hidden">
+              <p className="font-semibold text-gray-800 truncate" title={user?.contactName || user?.email}>
                 {user?.contactName || user?.email}
               </p>
-              
-              <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-xs font-bold ${config.color}`}>
-                {config.icon} {role}
+              <div className="flex flex-col gap-1 mt-1">
+                  <div className={`inline-flex items-center gap-1 text-xs font-bold ${config.color} px-2 py-0.5 rounded`}>
+                      {config.icon} {role}
+                  </div>
+                  {/* Hiển thị tên gói cước lấy từ AuthContext (user.planName) */}
+                  {user?.planName && (
+                      <div className="inline-flex items-center gap-1 text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                          <FiCreditCard className="text-[10px]" /> {user.planName}
+                      </div>
+                  )}
               </div>
             </div>
           </div>
@@ -104,61 +141,61 @@ const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col">
-        {/* HEADER */}
         <header className="bg-white shadow p-4 flex justify-between items-center">
-          
-          {/* Tiêu đề: Tên công ty */}
           <h1 className="text-xl font-semibold text-blue-600">
-            {user?.tenantName || "Tên công ty"}
+            {user?.tenantName || (user?.tenantId ? "Tenant Dashboard" : "Admin System")}
           </h1>
 
           <div className="flex items-center space-x-4">
-            
-            {/* Email + Role – Sửa đúng 100% */}
             <div className="text-right">
-              <p className="font-medium text-gray-800 truncate max-w-[200px]">
-                {user?.email}
-              </p>
-              <p className="text-xs font-medium 
-                ${role === 'Admin' ? 'text-blue-600' : 
-                  role === 'Editor' ? 'text-green-600' : 
-                  'text-orange-600'}">
-                {role === 'Admin' ? 'Administrator' : 
-                role === 'Editor' ? 'Editor' : 
-                'Viewer'}
+              <p className="font-medium text-gray-800 truncate max-w-[200px]">{user?.email}</p>
+              <p className={`text-xs font-medium ${
+                role === 'Admin' ? 'text-blue-600' : 
+                role === 'Editor' ? 'text-green-600' : 'text-orange-600'
+              }`}>
+                {role === 'Admin' ? 'Administrator' : role === 'Editor' ? 'Editor' : 'Viewer'}
               </p>
             </div>
 
-            {/* Avatar */}
             <img
               src={avatarUrl}
               alt="Avatar"
               className="w-10 h-10 rounded-full object-cover border-2 border-blue-300"
-              onError={(e) => {
-                e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
-              }}
+              onError={(e) => e.currentTarget.src = `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`}
             />
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
               className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition font-medium"
             >
               Đăng xuất
             </button>
-
           </div>
         </header>
 
-        {/* MAIN */}
         <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+          {/* Banner lớn, nổi bật ở đầu trang */}
+          {!user?.isEmailVerified && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl shadow-lg flex items-center gap-5">
+              <FiAlertCircle className="text-5xl text-orange-600 flex-shrink-0" />
+              <div>
+                <h3 className="text-2xl font-bold text-orange-900">Tài khoản chưa được kích hoạt đầy đủ</h3>
+                <p className="text-orange-800 mt-2 leading-relaxed">
+                  Bạn đã đăng nhập thành công, nhưng <strong>chưa xác minh email</strong>.<br />
+                  Vui lòng kiểm tra hộp thư (kể cả mục <strong>Spam/Junk/Promotions</strong>) để nhận link kích hoạt.
+                </p>
+                <p className="text-sm text-orange-700 mt-3 font-medium">
+                  Sau khi xác minh, bạn sẽ được sử dụng tất cả tính năng của hệ thống.
+                </p>
+              </div>
+            </div>
+          )}
+
           <Outlet />
         </main>
-
       </div>
-
     </div>
   );
 };
