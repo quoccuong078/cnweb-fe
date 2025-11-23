@@ -9,6 +9,8 @@ import {
   ,
 
 
+
+
   login as loginApi,
   requestPasswordReset,
   signup
@@ -131,8 +133,17 @@ export default function AuthPage() {
       if (userData.roles.includes("SuperAdmin")) navigate("/superadmin");
       else navigate("/admin");
     } catch (err) {
+      // --- SỬA ĐOẠN NÀY ---
       let msg = "Email hoặc mật khẩu không đúng.";
-      if (err.response?.data?.Message) msg = err.response.data.Message;
+      
+      // Kiểm tra cả 'message' (thường) và 'Message' (hoa)
+      if (err.response?.data?.message) {
+          msg = err.response.data.message;
+      } else if (err.response?.data?.Message) {
+          msg = err.response.data.Message;
+      } else if (err.response?.data?.error) {
+          msg = err.response.data.error;
+      }
       toast.error(msg);
     } finally {
       setLoading(false);
