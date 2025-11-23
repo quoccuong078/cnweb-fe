@@ -21,9 +21,13 @@ import Homepage from "./pages/Homepages/Homepage.jsx";
 import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
 import EditorPage from "./pages/LandingManagement/EditorPage.jsx";
 import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
+import LandingDetailEdit from "./pages/Landings/LandingDetailEdit.jsx";
+import LandingDetailView from "./pages/Landings/LandingDetailView.jsx";
+import Landings from "./pages/Landings/Landings.jsx";
 import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Statistics from "./pages/Statistics/Statistics.jsx";
 import SubscriptionPage from "./pages/Subscription/SubscriptionPage.jsx";
 import PlanManagement from "./pages/superadmin/PlanManagement.jsx";
 import SubscriptionManagement from "./pages/superadmin/SubscriptionManagement.jsx";
@@ -84,7 +88,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
               <Route path="/superadmin/plans" element={<PlanManagement />} /> {/* Route Mới */}
-    <Route path="/superadmin/subscriptions" element={<SubscriptionManagement />} /> {/* Route Mới */}
+              <Route path="/superadmin/subscriptions" element={<SubscriptionManagement />} /> {/* Route Mới */}
+              <Route path="/superadmin/landings" element={<Landings />} />
+              <Route path="/superadmin/statistics" element={<Statistics />} />
+              <Route path="/superadmin/landings/:id" element={<LandingDetailView />} />
+              <Route path="/superadmin/landings/:id/edit" element={<LandingDetailEdit />} />
             </Route>
           </Route>
         </Routes>
