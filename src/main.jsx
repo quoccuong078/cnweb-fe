@@ -13,7 +13,7 @@ import SuperAdminLayout from "./layouts/SuperAdminLayout.jsx";
 
 // Pages
 import Dashboard from "./pages/admin/Dashboard.jsx";
-import StatisticsPage from "./pages/admin/StatisticsPage";
+import AdminStatistics from "./pages/admin/StatisticsPage";           // Thống kê của Tenant Admin
 import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
 import ChangePassword from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
@@ -29,7 +29,14 @@ import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
 
-// Guest Pages (Mới)
+// SỬA 2 DÒNG NÀY THÀNH:
+
+import Landings from "./pages/Landings/Landings.jsx";
+import Statistics from "./pages/Statistics/Statistics.jsx";
+import LandingDetailView from "./pages/Landings/LandingDetailView.jsx";
+import LandingDetailEdit from "./pages/Landings/LandingDetailEdit.jsx";
+
+// Guest Pages
 import ContactPage from "./pages/Guest/ContactPage.jsx";
 import FeaturesPage from "./pages/Guest/FeaturesPage.jsx";
 import PricingPage from "./pages/Guest/PricingPage.jsx";
@@ -44,7 +51,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <Toaster position="top-right" />
         <Routes>
-          {/* Guest Routes (MainLayout chứa Navbar & Footer) */}
+          {/* Guest Routes */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Homepage />} />
             <Route path="/pricing" element={<PricingPage />} />
@@ -52,7 +59,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="/contact" element={<ContactPage />} />
           </Route>
 
-          {/* Landing Page Viewer (No Layout or Special Layout) */}
+          {/* Landing Viewer */}
           <Route path="/:subdomain/:slug" element={<LandingViewerPage />} />
           <Route path="/:subdomain" element={<LandingViewerPage />} />
 
@@ -63,6 +70,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
+            {/* Tenant Admin */}
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/subscription" element={<SubscriptionPage />} />
@@ -71,16 +79,23 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/editor" element={<EditorPage />} />
               <Route path="/admin/employees" element={<EmployeeManagement />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
-              <Route path="/admin/statistics" element={<StatisticsPage />} />
+              <Route path="/admin/statistics" element={<AdminStatistics />} />
               <Route path="/admin/change-password" element={<ChangePassword />} />
             </Route>
 
+            {/* Super Admin */}
             <Route element={<SuperAdminLayout />}>
               <Route path="/superadmin" element={<SuperAdminDashboard />} />
               <Route path="/superadmin/users" element={<UserManagement />} />
               <Route path="/superadmin/business" element={<BusinessManagement />} />
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
+
+              {/* 2 TRANG MỚI – ĐÃ SỬA ĐÚNG 100% */}
+              <Route path="/superadmin/landings" element={<Landings />} />
+              <Route path="/superadmin/statistics" element={<Statistics />} />
+              <Route path="/superadmin/landings/:id" element={<LandingDetailView />} />
+              <Route path="/superadmin/landings/:id/edit" element={<LandingDetailEdit />} />
             </Route>
           </Route>
         </Routes>
