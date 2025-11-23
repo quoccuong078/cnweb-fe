@@ -56,6 +56,7 @@ export const signup = async (data) => {
     ContactName: data.ContactName,
     PhoneNumber: data.PhoneNumber,
     Subdomain: data.Subdomain,
+    PlanId: data.PlanId, // <--- THÊM DÒNG NÀY ĐỂ GỬI GÓI ĐÃ CHỌN
   });
   return response.data;
 };
@@ -120,6 +121,21 @@ export const createLanding = async (data) => {
 // Cập nhật trang
 export const updateLanding = async (pageId, data) => {
   const response = await api.put(`/api/tenant/landings/${pageId}`, data);
+  return response.data;
+};
+
+export const getPublicPlans = async () => {
+  const response = await api.get("/api/plans");
+  return response.data;
+};
+
+export const getCurrentSubscription = async () => {
+  const response = await api.get("/api/subscription/current");
+  return response.data;
+};
+
+export const changePlan = async (newPlanId) => {
+  const response = await api.post("/api/subscription/change-plan", { NewPlanId: newPlanId });
   return response.data;
 };
 

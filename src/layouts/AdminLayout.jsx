@@ -1,7 +1,7 @@
 // src/layouts/AdminLayout.jsx
 import { useContext, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { FiAlertCircle, FiBarChart2, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
+import { FiAlertCircle, FiBarChart2, FiCreditCard, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -74,6 +74,7 @@ const AdminLayout = () => {
   const menuItems = [
     { name: "Dashboard",           path: "/admin",                     icon: <FiHome />,       roles: ["Admin", "Editor", "Viewer"] },
     { name: "Thống kê",            path: "/admin/statistics",          icon: <FiBarChart2 />,  roles: ["Admin", "Editor", "Viewer"] },
+    { name: "Gói cước & Dịch vụ",  path: "/admin/subscription",        icon: <FiCreditCard />, roles: ["Admin"] },
     { name: "Quản lý Landing",     path: "/admin/landing-management",  icon: <FiLayers />,     roles: ["Admin", "Editor"] },
     { name: "Quản lý nhân viên",   path: "/admin/employees",           icon: <FiUsers />,      roles: ["Admin"] },
     { name: "Thông tin cá nhân",   path: "/admin/profile",             icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
@@ -102,8 +103,16 @@ const AdminLayout = () => {
               <p className="font-semibold text-gray-800 truncate" title={user?.contactName || user?.email}>
                 {user?.contactName || user?.email}
               </p>
-              <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-xs font-bold ${config.color}`}>
-                {config.icon} {role}
+              <div className="flex flex-col gap-1 mt-1">
+                  <div className={`inline-flex items-center gap-1 text-xs font-bold ${config.color} px-2 py-0.5 rounded`}>
+                      {config.icon} {role}
+                  </div>
+                  {/* Hiển thị tên gói cước lấy từ AuthContext (user.planName) */}
+                  {user?.planName && (
+                      <div className="inline-flex items-center gap-1 text-xs font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                          <FiCreditCard className="text-[10px]" /> {user.planName}
+                      </div>
+                  )}
               </div>
             </div>
           </div>

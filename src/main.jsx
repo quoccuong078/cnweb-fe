@@ -11,8 +11,10 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import SuperAdminLayout from "./layouts/SuperAdminLayout.jsx";
 
+// Pages
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import StatisticsPage from "./pages/admin/StatisticsPage";
+import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
 import ChangePassword from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
 import Homepage from "./pages/Homepages/Homepage.jsx";
@@ -22,14 +24,19 @@ import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
 import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import SubscriptionPage from "./pages/Subscription/SubscriptionPage.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
 
+// Guest Pages (Mới)
+import ContactPage from "./pages/Guest/ContactPage.jsx";
+import FeaturesPage from "./pages/Guest/FeaturesPage.jsx";
+import PricingPage from "./pages/Guest/PricingPage.jsx";
+
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 import "./index.css";
-import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -37,22 +44,28 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <Toaster position="top-right" />
         <Routes>
+          {/* Guest Routes (MainLayout chứa Navbar & Footer) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Homepage />} />
-            <Route path="/homepages" element={<Homepage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/contact" element={<ContactPage />} />
           </Route>
 
+          {/* Landing Page Viewer (No Layout or Special Layout) */}
           <Route path="/:subdomain/:slug" element={<LandingViewerPage />} />
           <Route path="/:subdomain" element={<LandingViewerPage />} />
 
+          {/* Auth */}
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
+          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
-            {/* Admin routes */}
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/subscription" element={<SubscriptionPage />} />
               <Route path="/admin/landing-management" element={<LandingManagement />} />
               <Route path="/admin/create-landing" element={<CreateLanding />} />
               <Route path="/admin/editor" element={<EditorPage />} />
@@ -62,7 +75,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/change-password" element={<ChangePassword />} />
             </Route>
 
-            {/* SuperAdmin routes */}
             <Route element={<SuperAdminLayout />}>
               <Route path="/superadmin" element={<SuperAdminDashboard />} />
               <Route path="/superadmin/users" element={<UserManagement />} />
