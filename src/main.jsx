@@ -25,6 +25,8 @@ import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import SubscriptionPage from "./pages/Subscription/SubscriptionPage.jsx";
+import PlanManagement from "./pages/superadmin/PlanManagement.jsx";
+import SubscriptionManagement from "./pages/superadmin/SubscriptionManagement.jsx";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard.jsx";
 import UserManagement from "./pages/UserManagement/UserManagement.jsx";
 import VerifyEmail from "./pages/VerifyEmail.jsx";
@@ -81,6 +83,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin/business" element={<BusinessManagement />} />
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
+              <Route path="/superadmin/plans" element={<PlanManagement />} /> {/* Route Mới */}
+    <Route path="/superadmin/subscriptions" element={<SubscriptionManagement />} /> {/* Route Mới */}
             </Route>
           </Route>
         </Routes>

@@ -139,4 +139,59 @@ export const changePlan = async (newPlanId) => {
   return response.data;
 };
 
+// --- PLAN MANAGEMENT (SUPER ADMIN) ---
+export const getAllSubscriptions = async () => {
+  const response = await api.get("/api/plans/subscriptions");
+  return response.data;
+};
+
+export const createPlan = async (planData) => {
+  const response = await api.post("/api/plans", planData);
+  return response.data;
+};
+
+export const updatePlan = async (id, planData) => {
+  const response = await api.put(`/api/plans/${id}`, planData);
+  return response.data;
+};
+
+export const deletePlan = async (id) => {
+  const response = await api.delete(`/api/plans/${id}`);
+  return response.data;
+};
+
+export const changePassword = async (oldPassword, newPassword) => {
+  const response = await api.post("/api/auth/change-password", {
+    OldPassword: oldPassword,
+    NewPassword: newPassword
+  });
+  return response.data;
+};
+
+// Thêm vào file api.js
+
+export const updateUser = async (id, data) => {
+  // data bao gồm: { ContactName, Email, PhoneNumber, Avatar, ... }
+  const response = await api.put(`/api/user/${id}`, data);
+  return response.data;
+};
+
+export const uploadUserAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  
+  // Gọi vào UserController (Lưu vào wwwroot/avatar)
+  const response = await api.post("/api/user/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  // UserController của bạn trả về { FileName, Url }
+  // Ta chỉ cần trả về Url để hiển thị, hoặc FileName để lưu DB tùy logic bên dưới
+  return response.data;
+};
+
+export const resendVerificationEmail = async (email) => {
+  const response = await api.post("/api/auth/resend-verification", { Email: email });
+  return response.data;
+};
+
 export default api;

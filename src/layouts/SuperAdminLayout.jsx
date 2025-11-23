@@ -32,6 +32,8 @@ const SuperAdminLayout = () => {
 
     const menuItems = [
         { name: "Tổng quan", path: "/superadmin", icon: <FiHome className="text-lg" /> },
+        { name: "Quản lý Đăng ký", path: "/superadmin/subscriptions", icon: <FiGlobe className="text-lg" /> }, // <--- TRANG XEM SUB
+        { name: "Cấu hình Gói cước", path: "/superadmin/plans", icon: <FiLayers className="text-lg" /> },    // <--- TRANG QUẢN LÝ PLAN
         { name: "Quản lý doanh nghiệp", path: "/superadmin/business", icon: <FiGlobe className="text-lg" /> },
         { name: "Quản lý người dùng", path: "/superadmin/users", icon: <FiUsers className="text-lg" /> },
         { name: "Thông tin cá nhân", path: "/superadmin/profile", icon: <FiShield className="text-lg" /> },
