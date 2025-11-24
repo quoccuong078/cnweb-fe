@@ -1,16 +1,12 @@
+// src/Auth/AuthPage.jsx
 import { useContext, useState } from "react";
 import toast from "react-hot-toast";
-import { FiCheck, FiX } from "react-icons/fi"; // Import icon đóng modal
+import { FiCheck, FiX } from "react-icons/fi"; // Import icon
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
   getCurrentUser,
-  getPublicPlans // Đảm bảo bạn đã export hàm này trong api.js
-  ,
-
-
-
-
+  getPublicPlans,
   login as loginApi,
   requestPasswordReset,
   signup
@@ -28,7 +24,7 @@ export default function AuthPage() {
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [subdomain, setSubdomain] = useState("");
+  const [subdomain, setSubdomain] = useState(""); // Chỉ lưu phần prefix (vd: tndtvn)
   
   // --- STATE MODAL PLAN ---
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -41,12 +37,12 @@ export default function AuthPage() {
   // --- VALIDATION ---
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPhone = (phone) => /^0\d{9}$/.test(phone);
+
+  // [CẬP NHẬT] Validate Subdomain: Không cho phép nhập dấu chấm
   const isValidSubdomain = (domain) => {
-    if (!domain.endsWith(".com")) return { valid: false, msg: "Subdomain phải kết thúc bằng .com" };
-    const prefix = domain.slice(0, -4);
-    if (prefix.length < 3) return { valid: false, msg: "Tên subdomain quá ngắn (< 3 ký tự)" };
-    const regex = /^[a-z0-9]+$/;
-    if (!regex.test(prefix)) return { valid: false, msg: "Subdomain chỉ chứa chữ thường và số!" };
+    const regex = /^[a-z0-9-]+$/; // Chỉ chữ thường, số, gạch ngang
+    if (!regex.test(domain)) return { valid: false, msg: "Subdomain chỉ chứa chữ thường, số và gạch ngang (không nhập .com)" };
+    if (domain.length < 3) return { valid: false, msg: "Tên subdomain quá ngắn (< 3 ký tự)" };
     return { valid: true };
   };
 
@@ -62,6 +58,7 @@ export default function AuthPage() {
     if (password.length < 6) { toast.error("Mật khẩu tối thiểu 6 ký tự!"); return; }
     if (password !== confirmPass) { toast.error("Mật khẩu xác nhận không khớp!"); return; }
     
+    // Validate Subdomain
     const cleanSubdomain = subdomain.trim().toLowerCase();
     const subCheck = isValidSubdomain(cleanSubdomain);
     if (!subCheck.valid) { toast.error(subCheck.msg); return; }
@@ -71,7 +68,7 @@ export default function AuthPage() {
     try {
       const data = await getPublicPlans();
       setPlans(data);
-      // Mặc định chọn gói đầu tiên hoặc gói Popular
+      // Mặc định chọn gói Popular hoặc gói đầu tiên
       const defaultPlan = data.find(p => p.isPopular) || data[0];
       if (defaultPlan) setSelectedPlanId(defaultPlan.id);
       
@@ -93,14 +90,17 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
+      // [CẬP NHẬT] Tự động ghép đuôi domain hệ thống
+      const fullSubdomain = `${subdomain.trim().toLowerCase()}.saaswebsite.com`;
+
       await signup({
         CompanyName: companyName,
         Email: email,
         Password: password,
         ContactName: contactName,
         PhoneNumber: phoneNumber,
-        Subdomain: subdomain.trim().toLowerCase(),
-        PlanId: selectedPlanId // Gửi thêm PlanId
+        Subdomain: fullSubdomain, // Gửi chuỗi đầy đủ: "brand.saaswebsite.com"
+        PlanId: selectedPlanId 
       });
 
       toast.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.", { duration: 8000 });
@@ -130,13 +130,13 @@ export default function AuthPage() {
       const userData = await getCurrentUser();
       setAuth(userData, res.token);
       toast.success("Đăng nhập thành công!");
+      
+      // Điều hướng dựa trên Role
       if (userData.roles.includes("SuperAdmin")) navigate("/superadmin");
       else navigate("/admin");
-    } catch (err) {
-      // --- SỬA ĐOẠN NÀY ---
-      let msg = "Email hoặc mật khẩu không đúng.";
       
-      // Kiểm tra cả 'message' (thường) và 'Message' (hoa)
+    } catch (err) {
+      let msg = "Email hoặc mật khẩu không đúng.";
       if (err.response?.data?.message) {
           msg = err.response.data.message;
       } else if (err.response?.data?.Message) {
@@ -196,22 +196,39 @@ export default function AuthPage() {
             </>
           )}
 
-          {/* --- REGISTER FORM (Inputs) --- */}
+          {/* --- REGISTER FORM --- */}
           {activeTab === "register" && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-gray-700 text-sm font-medium mb-1">Tên công ty</label><input value={companyName} onChange={(e)=>setCompanyName(e.target.value)} type="text" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>
+                
+                {/* [CẬP NHẬT] Giao diện nhập Subdomain có đuôi cố định */}
                 <div>
                   <label className="block text-gray-700 text-sm font-medium mb-1">Subdomain</label>
-                  <input value={subdomain} onChange={(e)=>setSubdomain(e.target.value)} type="text" placeholder="domain.com" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
-                  <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">*Chỉ chữ thường và số, kết thúc .com</p>
+                  <div className="flex items-center">
+                    <input 
+                      value={subdomain} 
+                      onChange={(e)=>setSubdomain(e.target.value)} 
+                      type="text" 
+                      placeholder="mybrand" 
+                      className="w-full px-4 py-2 border border-r-0 rounded-l-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                      required 
+                    />
+                    <span className="bg-gray-100 border border-l-0 border-gray-300 text-gray-500 px-3 py-2 rounded-r-lg text-sm select-none whitespace-nowrap">
+                      .saaswebsite.com
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1 whitespace-nowrap">*Chỉ nhập tên định danh, không nhập .com</p>
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-gray-700 text-sm font-medium mb-1">Tên liên hệ</label><input value={contactName} onChange={(e)=>setContactName(e.target.value)} type="text" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>
                 <div><label className="block text-gray-700 text-sm font-medium mb-1">Số điện thoại</label><input value={phoneNumber} onChange={(e)=>setPhoneNumber(e.target.value)} type="tel" placeholder="09xxxxxxx" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>
               </div>
+              
               <div><label className="block text-gray-700 text-sm font-medium mb-1">Email đăng ký</label><input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label><input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" placeholder="Min 6 ký tự" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>
                 <div><label className="block text-gray-700 text-sm font-medium mb-1">Xác nhận MK</label><input value={confirmPass} onChange={(e)=>setConfirmPass(e.target.value)} type="password" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required /></div>

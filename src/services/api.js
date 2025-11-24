@@ -217,4 +217,10 @@ export const updateLandingForSuperAdmin = async (id, data) => {
   return response.data;
 };
 
+export const updateTenantInfo = async (data) => {
+  // data: { TenantName, Subdomain }
+  const response = await api.put("/api/tenant/info", data);
+  return response.data;
+};
+
 export default api;

@@ -15,6 +15,7 @@ import SuperAdminLayout from "./layouts/SuperAdminLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import StatisticsPage from "./pages/admin/StatisticsPage";
 import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
+import TenantSettings from "./pages/BusinessManagement/TenantSettings.jsx";
 import ChangePassword from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
 import Homepage from "./pages/Homepages/Homepage.jsx";
@@ -78,6 +79,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route path="/admin/statistics" element={<StatisticsPage />} />
               <Route path="/admin/change-password" element={<ChangePassword />} />
+              <Route path="/admin/settings" element={<TenantSettings />} />
             </Route>
 
             <Route element={<SuperAdminLayout />}>
