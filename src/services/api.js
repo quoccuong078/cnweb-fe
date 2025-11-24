@@ -194,4 +194,27 @@ export const resendVerificationEmail = async (email) => {
   return response.data;
 };
 
+// --- SUPER ADMIN LANDING MANAGEMENT ---
+export const getAllLandingsForSuperAdmin = async () => {
+  const response = await api.get("/api/superadmin/landings");
+  return response.data;
+};
+
+export const getLandingDetailForSuperAdmin = async (id) => {
+  const response = await api.get(`/api/superadmin/landings/${id}`);
+  return response.data;
+};
+
+// [MỚI] Lấy trang để sửa (Cho SuperAdmin)
+export const getLandingForEditForSuperAdmin = async (id) => {
+  const response = await api.get(`/api/superadmin/landings/edit/${id}`);
+  return response.data;
+};
+
+// [MỚI] Lưu trang (Cho SuperAdmin)
+export const updateLandingForSuperAdmin = async (id, data) => {
+  const response = await api.put(`/api/superadmin/landings/edit/${id}`, data);
+  return response.data;
+};
+
 export default api;

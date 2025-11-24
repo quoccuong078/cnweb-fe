@@ -21,7 +21,6 @@ import Homepage from "./pages/Homepages/Homepage.jsx";
 import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
 import EditorPage from "./pages/LandingManagement/EditorPage.jsx";
 import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
-import LandingDetailEdit from "./pages/Landings/LandingDetailEdit.jsx";
 import LandingDetailView from "./pages/Landings/LandingDetailView.jsx";
 import Landings from "./pages/Landings/Landings.jsx";
 import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
@@ -92,7 +91,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin/landings" element={<Landings />} />
               <Route path="/superadmin/statistics" element={<Statistics />} />
               <Route path="/superadmin/landings/:id" element={<LandingDetailView />} />
-              <Route path="/superadmin/landings/:id/edit" element={<LandingDetailEdit />} />
+              <Route path="/superadmin/editor" element={<EditorPage />} />
             </Route>
           </Route>
         </Routes>

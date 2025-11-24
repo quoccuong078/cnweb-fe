@@ -18,7 +18,7 @@ import { FiArrowLeft, FiGlobe, FiSave } from "react-icons/fi"; // Thêm icon Arr
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import EditableBlock from "../../components/Editor/EditableBlock";
 import { SortableItem } from "../../components/Editor/SortableItem";
-import { createLanding, getCurrentUser, getLandingForEdit, updateLanding } from "../../services/api";
+import { createLanding, getCurrentUser, getLandingForEdit, getLandingForEditForSuperAdmin, updateLanding, updateLandingForSuperAdmin } from "../../services/api";
 
 // ... (Giữ nguyên phần sectionTemplates và colorThemes như cũ)
 const sectionTemplates = {
@@ -62,6 +62,7 @@ export default function EditorPage() {
   const pageId = searchParams.get("id");
   const newPageData = location.state?.newPageData;
 
+  const isSuperAdmin = location.pathname.includes("/superadmin");
   const [page, setPage] = useState({ 
       id: null, 
       title: "Trang mới", 
@@ -82,10 +83,18 @@ export default function EditorPage() {
     const loadPage = async () => {
       if (pageId) {
         try {
-          const data = await getLandingForEdit(pageId);
+          // 2. CHỌN API LOAD DỮ LIỆU TÙY THEO QUYỀN
+          let data;
+          if (isSuperAdmin) {
+             data = await getLandingForEditForSuperAdmin(pageId);
+          } else {
+             data = await getLandingForEdit(pageId);
+          }
+          
           let currentSubdomain = data.pageConfiguration?.subdomain;
           
-          if (!currentSubdomain) {
+          // Logic lấy fallback subdomain chỉ cần thiết cho Admin thường
+          if (!currentSubdomain && !isSuperAdmin) {
              try {
                 const user = await getCurrentUser();
                 currentSubdomain = user.subdomain || user.tenantSubdomain || "";
@@ -143,7 +152,7 @@ export default function EditorPage() {
       setLoading(false);
     };
     loadPage();
-  }, [pageId, navigate, location.state]);
+  }, [pageId, navigate, location.state, isSuperAdmin]);
 
   // Các hàm xử lý section (Giữ nguyên)
   const addSection = (type) => {
@@ -180,25 +189,33 @@ export default function EditorPage() {
   const handleSave = async () => {
     setSaving(true);
     const payload = {
-      title: page.title,
-      slug: page.slug,
-      status: page.status,
-      customColors: selectedColor,
-      templateId: page.templateId, 
-      subdomain: page.subdomain,   
-      pageSections: sections.map((s, idx) => ({
-        id: (s.id > 2000000000) ? null : s.id, 
-        sectionType: s.sectionType,
-        content: typeof s.content === 'string' ? s.content : JSON.stringify(s.content), 
-        order: idx
-      }))
+       // ... (Giữ nguyên payload cũ) ...
+       title: page.title,
+       slug: page.slug,
+       status: page.status,
+       customColors: selectedColor,
+       templateId: page.templateId, 
+       subdomain: page.subdomain,   
+       pageSections: sections.map((s, idx) => ({
+         id: (s.id > 2000000000) ? null : s.id, 
+         sectionType: s.sectionType,
+         content: typeof s.content === 'string' ? s.content : JSON.stringify(s.content), 
+         order: idx
+       }))
     };
 
     try {
       if (pageId) {
-        await updateLanding(pageId, payload);
-        alert("Cập nhật trang thành công!");
+        // 3. CHỌN API UPDATE TÙY THEO QUYỀN
+        if (isSuperAdmin) {
+            await updateLandingForSuperAdmin(pageId, payload);
+            alert("SuperAdmin: Cập nhật trang thành công!");
+        } else {
+            await updateLanding(pageId, payload);
+            alert("Cập nhật trang thành công!");
+        }
       } else {
+        // Create thì thường chỉ Admin làm, nhưng nếu SuperAdmin create thì cần logic riêng (ít gặp)
         const res = await createLanding(payload);
         alert("Tạo trang mới thành công!");
         navigate(`/admin/editor?id=${res.id}`, { replace: true });
@@ -211,7 +228,7 @@ export default function EditorPage() {
       setSaving(false);
     }
   };
-
+  
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center text-2xl text-gray-600">
@@ -229,11 +246,11 @@ export default function EditorPage() {
         {/* Nút quay lại nằm ngay đầu Sidebar */}
         <div className="p-4 border-b border-gray-100">
             <button
-                onClick={() => navigate("/admin/landing-management")}
+                onClick={() => navigate(isSuperAdmin ? "/superadmin/landings" : "/admin/landing-management")}
                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors w-full font-medium"
             >
                 <FiArrowLeft className="w-5 h-5" />
-                Quay lại quản lý
+                {isSuperAdmin ? "Về danh sách (SuperAdmin)" : "Quay lại quản lý"}
             </button>
         </div>
 

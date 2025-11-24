@@ -41,16 +41,16 @@ export default function PricingPage() {
             <div 
               key={idx} 
               className={`relative bg-white rounded-3xl p-8 border-2 transition-transform hover:-translate-y-2 flex flex-col
-                ${plan.popular ? 'border-blue-600 shadow-2xl scale-105 z-10' : 'border-gray-100 shadow-lg'}
+                ${plan.isPopular ? 'border-blue-600 shadow-2xl scale-105 z-10' : 'border-gray-100 shadow-lg'}
               `}
             >
-              {plan.popular && (
+              {plan.isPopular && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wide">
                   Phổ biến nhất
                 </div>
               )}
 
-              <h3 className={`text-xl font-bold mb-2 text-${plan.color === 'purple' ? 'purple-600' : plan.popular ? 'blue-600' : 'gray-800'}`}>
+              <h3 className={`text-xl font-bold mb-2 text-${plan.color === 'purple' ? 'purple-600' : plan.isPopular ? 'blue-600' : 'gray-800'}`}>
                 {plan.name}
               </h3>
               <p className="text-gray-500 text-sm mb-6 h-10">{plan.desc}</p>
@@ -73,7 +73,7 @@ export default function PricingPage() {
               <Link 
                 to="/auth"
                 className={`block w-full py-3 rounded-xl font-bold transition text-center mt-auto
-                  ${plan.popular 
+                  ${plan.isPopular 
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
                     : plan.color === 'purple' 
                       ? 'bg-purple-600 text-white hover:bg-purple-700'

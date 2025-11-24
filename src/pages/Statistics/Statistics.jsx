@@ -2,6 +2,11 @@
 import { BarChart3, Calendar, Globe, TrendingUp, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  getSuperAdminChartData,
+  getSuperAdminStats,
+  getSuperAdminTopTenants
+} from "../../services/dashboardService";
 
 export default function Statistics() {
   const [stats, setStats] = useState({});
@@ -12,42 +17,16 @@ export default function Statistics() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // --- TẮT API ---
-        /*
         const [statsRes, growthRes, topRes] = await Promise.all([
-          api.get("/api/superadmin/stats"),
-          api.get("/api/superadmin/stats/growth"),
-          api.get("/api/superadmin/stats/top-tenants"),
+          getSuperAdminStats(),
+          getSuperAdminChartData(),
+          getSuperAdminTopTenants(),
         ]);
+
+        // Gán dữ liệu từ API
         setStats(statsRes.data);
         setGrowth(growthRes.data || []);
         setTopTenants(topRes.data || []);
-        */
-
-        // --- MOCK DATA ---
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        setStats({
-          totalTenants: 125,
-          totalUsers: 3400,
-          newestLanding: { domain: "shop-abc.vn", createdAt: new Date().toISOString() },
-          oldestLanding: { domain: "old-store.com", createdAt: "2024-01-01T00:00:00Z" }
-        });
-
-        setGrowth([
-          { month: "T1", tenants: 10 },
-          { month: "T2", tenants: 25 },
-          { month: "T3", tenants: 45 },
-          { month: "T4", tenants: 80 },
-          { month: "T5", tenants: 125 },
-        ]);
-
-        setTopTenants([
-          { name: "Công ty ABC", users: 500, visits: 12000 },
-          { name: "Shop Thời Trang X", users: 300, visits: 8500 },
-          { name: "Startup Tech Z", users: 150, visits: 5000 },
-        ]);
-
       } catch (err) {
         console.error("Lỗi tải thống kê:", err);
       } finally {
@@ -59,9 +38,11 @@ export default function Statistics() {
 
   if (loading) {
     return (
-      <div className="p-20 text-center">
-        <div className="inline-block animate-spin rounded-full h-14 w-14 border-4 border-purple-600 border-t-transparent"></div>
-        <p className="mt-6 text-lg text-gray-600">Đang tải thống kê...</p>
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-14 w-14 border-4 border-purple-600 border-t-transparent"></div>
+            <p className="mt-6 text-lg text-gray-600">Đang tải thống kê hệ thống...</p>
+        </div>
       </div>
     );
   }
@@ -77,20 +58,23 @@ export default function Statistics() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+        {/* Card: Tổng doanh nghiệp */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600">Tổng doanh nghiệp</p>
               <p className="text-4xl font-bold text-purple-700 mt-2">
                 {(stats.totalTenants || 0).toLocaleString()}
               </p>
-              <p className="text-green-600 text-sm mt-2">↑ 28% tháng này</p>
+              {/* Logic tăng trưởng tạm thời hardcode hoặc cần tính thêm ở BE */}
+              <p className="text-green-600 text-sm mt-2">Tenant hoạt động</p>
             </div>
             <Globe className="text-5xl text-purple-200" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+        {/* Card: Tổng người dùng */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600">Tổng người dùng</p>
@@ -102,65 +86,90 @@ export default function Statistics() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+        {/* Card: Landing mới nhất */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-600 flex items-center gap-2">
             <Calendar className="text-green-600" /> Landing mới nhất
           </p>
-          <p className="text-xl font-bold mt-2">{stats.newestLanding?.domain || "Chưa có"}</p>
+          <p className="text-xl font-bold mt-2 truncate" title={stats.newestLanding?.domain}>
+            {stats.newestLanding?.domain || "Chưa có dữ liệu"}
+          </p>
           <p className="text-sm text-gray-500">
-            {stats.newestLanding?.createdAt ? new Date(stats.newestLanding.createdAt).toLocaleDateString("vi-VN") : ""}
+            {stats.newestLanding?.createdAt 
+              ? new Date(stats.newestLanding.createdAt).toLocaleDateString("vi-VN") 
+              : ""}
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+        {/* Card: Landing cũ nhất */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-600 flex items-center gap-2">
             <Calendar className="text-red-600" /> Landing cũ nhất
           </p>
-          <p className="text-xl font-bold mt-2">{stats.oldestLanding?.domain || "Chưa có"}</p>
+          <p className="text-xl font-bold mt-2 truncate" title={stats.oldestLanding?.domain}>
+            {stats.oldestLanding?.domain || "Chưa có dữ liệu"}
+          </p>
           <p className="text-sm text-gray-500">
-            {stats.oldestLanding?.createdAt ? new Date(stats.oldestLanding.createdAt).toLocaleDateString("vi-VN") : ""}
+            {stats.oldestLanding?.createdAt 
+              ? new Date(stats.oldestLanding.createdAt).toLocaleDateString("vi-VN") 
+              : ""}
           </p>
         </div>
       </div>
 
+      {/* Biểu đồ tăng trưởng */}
       {growth.length > 0 && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp className="text-purple-600" />
-            Tăng trưởng Tenant năm 2025
+            Tăng trưởng Tenant năm {new Date().getFullYear()}
           </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={growth}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="tenants" stroke="#8b5cf6" strokeWidth={4} dot={{ fill: "#8b5cf6" }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={growth}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} dy={10} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Line 
+                    type="monotone" 
+                    dataKey="tenants" 
+                    name="Số lượng Tenant"
+                    stroke="#8b5cf6" 
+                    strokeWidth={4} 
+                    dot={{ fill: "#8b5cf6", r: 4 }} 
+                    activeDot={{ r: 6 }}
+                />
+                </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
+      {/* Top Tenants Table */}
       {topTenants.length > 0 && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            Top 5 doanh nghiệp hoạt động mạnh
+            Top 5 doanh nghiệp có lượt truy cập cao nhất
           </h2>
           <div className="space-y-4">
             {topTenants.map((t, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-purple-50 transition">
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-purple-50 transition border border-transparent hover:border-purple-100">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-sm
+                    ${i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : i === 2 ? 'bg-orange-400' : 'bg-purple-600'}`}>
                     {i + 1}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">{t.name}</p>
+                    <p className="font-bold text-gray-800">{t.name}</p>
                     <p className="text-sm text-gray-600">{t.users?.toLocaleString() || 0} người dùng</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-purple-700">{t.visits?.toLocaleString() || 0}</p>
-                  <p className="text-sm text-gray-600">lượt truy cập</p>
+                  <p className="font-bold text-purple-700 text-lg">{t.visits?.toLocaleString() || 0}</p>
+                  <p className="text-xs text-gray-500 uppercase font-semibold">Lượt xem</p>
                 </div>
               </div>
             ))}
