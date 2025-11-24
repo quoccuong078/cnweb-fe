@@ -78,7 +78,7 @@ export default function Landings() {
   };
 
   const getDisplayUrl = (item) => {
-    const identifier = item.customDomain || `${item.subdomain}.saas-platform.com`;
+    const identifier = item.subdomain || `${item.customDomain}.saas-platform.com`;
     return `${identifier}/${item.slug}`;
   };
 
