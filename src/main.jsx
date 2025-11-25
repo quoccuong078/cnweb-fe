@@ -15,15 +15,19 @@ import SuperAdminLayout from "./layouts/SuperAdminLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import StatisticsPage from "./pages/admin/StatisticsPage";
 import BusinessManagement from "./pages/BusinessManagement/BusinessManagement.jsx";
+import TenantSettings from "./pages/BusinessManagement/TenantSettings.jsx";
 import ChangePassword from "./pages/ChangePasswordPage/ChangePasswordPage.jsx";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement.jsx";
 import Homepage from "./pages/Homepages/Homepage.jsx";
 import CreateLanding from "./pages/LandingManagement/CreateLanding.jsx";
 import EditorPage from "./pages/LandingManagement/EditorPage.jsx";
 import LandingManagement from "./pages/LandingManagement/LandingManagement.jsx";
+import LandingDetailView from "./pages/Landings/LandingDetailView.jsx";
+import Landings from "./pages/Landings/Landings.jsx";
 import LandingViewerPage from "./pages/LandingViewer/LandingViewerPage.jsx";
 import ProfilePage from "./pages/ProfilePageManagement/ProfilePage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Statistics from "./pages/Statistics/Statistics.jsx";
 import SubscriptionPage from "./pages/Subscription/SubscriptionPage.jsx";
 import PlanManagement from "./pages/superadmin/PlanManagement.jsx";
 import SubscriptionManagement from "./pages/superadmin/SubscriptionManagement.jsx";
@@ -75,6 +79,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route path="/admin/statistics" element={<StatisticsPage />} />
               <Route path="/admin/change-password" element={<ChangePassword />} />
+              <Route path="/admin/settings" element={<TenantSettings />} />
             </Route>
 
             <Route element={<SuperAdminLayout />}>
@@ -84,7 +89,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="/superadmin/profile" element={<ProfilePage />} />
               <Route path="/superadmin/change-password" element={<ChangePassword />} />
               <Route path="/superadmin/plans" element={<PlanManagement />} /> {/* Route Mới */}
-    <Route path="/superadmin/subscriptions" element={<SubscriptionManagement />} /> {/* Route Mới */}
+              <Route path="/superadmin/subscriptions" element={<SubscriptionManagement />} /> {/* Route Mới */}
+              <Route path="/superadmin/landings" element={<Landings />} />
+              <Route path="/superadmin/statistics" element={<Statistics />} />
+              <Route path="/superadmin/landings/:id" element={<LandingDetailView />} />
+              <Route path="/superadmin/editor" element={<EditorPage />} />
             </Route>
           </Route>
         </Routes>

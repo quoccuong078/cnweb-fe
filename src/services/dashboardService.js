@@ -8,3 +8,4 @@ export const getAdminChartData = () => api.get(`${DASHBOARD_API}/admin-chart-dat
 // src/services/dashboardService.js
 export const getSuperAdminStats = () => api.get("/api/dashboard/superadmin-stats");
 export const getSuperAdminChartData = () => api.get("/api/dashboard/superadmin-chart-data");
+export const getSuperAdminTopTenants = () => api.get(`${DASHBOARD_API}/superadmin-top-tenants`);

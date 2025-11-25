@@ -1,7 +1,7 @@
 // src/layouts/AdminLayout.jsx
 import { useContext, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { FiAlertCircle, FiBarChart2, FiCreditCard, FiEdit3, FiEye, FiHome, FiLayers, FiShield, FiUsers } from "react-icons/fi";
+import { FiAlertCircle, FiBarChart2, FiCreditCard, FiEdit3, FiEye, FiHome, FiLayers, FiSettings, FiShield, FiUsers } from "react-icons/fi";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -77,6 +77,7 @@ const AdminLayout = () => {
     { name: "Gói cước & Dịch vụ",  path: "/admin/subscription",        icon: <FiCreditCard />, roles: ["Admin"] },
     { name: "Quản lý Landing",     path: "/admin/landing-management",  icon: <FiLayers />,     roles: ["Admin", "Editor"] },
     { name: "Quản lý nhân viên",   path: "/admin/employees",           icon: <FiUsers />,      roles: ["Admin"] },
+    { name: "Cấu hình", path: "/admin/settings", icon: <FiSettings />, roles: ["Admin"] },
     { name: "Thông tin cá nhân",   path: "/admin/profile",             icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
     { name: "Đổi mật khẩu",        path: "/admin/change-password",     icon: <FiShield />,     roles: ["Admin", "Editor", "Viewer"] },
   ];

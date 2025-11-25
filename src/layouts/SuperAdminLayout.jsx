@@ -1,7 +1,7 @@
 // src/layouts/SuperAdminLayout.jsx
 import { useContext } from "react";
 import toast from "react-hot-toast";
-import { FiGlobe, FiHome, FiLayers, FiShield, FiUsers, FiZap } from "react-icons/fi"; // Thêm FiZap
+import { FiBarChart2, FiGlobe, FiHome, FiLayers, FiLayout, FiShield, FiUsers, FiZap } from "react-icons/fi"; // Thêm FiZap
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
@@ -35,6 +35,8 @@ const SuperAdminLayout = () => {
         { name: "Quản lý Đăng ký", path: "/superadmin/subscriptions", icon: <FiGlobe className="text-lg" /> }, // <--- TRANG XEM SUB
         { name: "Cấu hình Gói cước", path: "/superadmin/plans", icon: <FiLayers className="text-lg" /> },    // <--- TRANG QUẢN LÝ PLAN
         { name: "Quản lý doanh nghiệp", path: "/superadmin/business", icon: <FiGlobe className="text-lg" /> },
+        { name: "Quản lý Landing Page", path: "/superadmin/landings", icon: <FiLayout className="text-lg" /> },     // ĐÃ SỬA
+        { name: "Thống kê doanh nghiệp", path: "/superadmin/statistics", icon: <FiBarChart2 className="text-lg" /> },
         { name: "Quản lý người dùng", path: "/superadmin/users", icon: <FiUsers className="text-lg" /> },
         { name: "Thông tin cá nhân", path: "/superadmin/profile", icon: <FiShield className="text-lg" /> },
         { name: "Đổi mật khẩu", path: "/superadmin/change-password", icon: <FiShield className="text-base" /> },
