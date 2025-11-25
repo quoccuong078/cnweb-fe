@@ -1,7 +1,7 @@
 // src/pages/BusinessManagement/BusinessManagement.jsx
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { FiUsers } from "react-icons/fi";
+import { FiUsers, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Swal from 'sweetalert2'; // Import SweetAlert2
 import BusinessForm from './BusinessForm';
 import BusinessTable from './BusinessTable';
@@ -17,6 +17,10 @@ const BusinessManagement = () => {
     // --- STATES ---
     const [businesses, setBusinesses] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Pagination States (Mới thêm)
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     // Edit Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,6 +49,18 @@ const BusinessManagement = () => {
         fetchBusinesses();
     }, []);
 
+    // --- PAGINATION LOGIC ---
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentBusinesses = businesses.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(businesses.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber >= 1 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+    };
+
     // --- HANDLERS ---
 
     // 1. Mở form chỉnh sửa
@@ -53,7 +69,7 @@ const BusinessManagement = () => {
         setIsModalOpen(true);
     };
 
-    // 2. Lưu form chỉnh sửa (Update Basic Info)
+    // 2. Lưu form chỉnh sửa
     const handleSave = async (formData) => {
         try {
             await updateTenant(formData.id, {
@@ -62,14 +78,14 @@ const BusinessManagement = () => {
             });
             toast.success("Cập nhật thành công!");
             setIsModalOpen(false);
-            fetchBusinesses(); // Reload lại dữ liệu mới nhất
+            fetchBusinesses();
         } catch (error) {
             console.error(error);
             toast.error("Có lỗi xảy ra khi lưu.");
         }
     };
 
-    // 3. Xử lý Khóa/Mở khóa (Thay thế cho Delete)
+    // 3. Xử lý Khóa/Mở khóa
     const handleToggleStatus = async (id, isCurrentlyActive) => {
         const action = isCurrentlyActive ? "KHÓA" : "MỞ KHÓA";
         const confirmText = isCurrentlyActive 
@@ -82,7 +98,7 @@ const BusinessManagement = () => {
             text: confirmText,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: isCurrentlyActive ? '#d33' : '#10b981', // Đỏ nếu khóa, Xanh nếu mở
+            confirmButtonColor: isCurrentlyActive ? '#d33' : '#10b981',
             cancelButtonColor: '#3085d6',
             confirmButtonText: isCurrentlyActive ? 'Vâng, Khóa ngay!' : 'Vâng, Mở khóa!',
             cancelButtonText: 'Hủy bỏ',
@@ -97,9 +113,6 @@ const BusinessManagement = () => {
 
         if (result.isConfirmed) {
             try {
-                // Gọi API: Tham số thứ 2 là isLocked (True = Muốn khóa)
-                // Nếu đang Active -> Gửi True để khóa
-                // Nếu đang Inactive -> Gửi False để mở
                 await toggleTenantStatus(id, isCurrentlyActive);
                 
                 Swal.fire({
@@ -110,7 +123,7 @@ const BusinessManagement = () => {
                     showConfirmButton: false
                 });
 
-                // Cập nhật UI ngay lập tức (Optimistic Update)
+                // Cập nhật UI ngay lập tức
                 setBusinesses(prev => prev.map(b => {
                     if (b.id === id) {
                         return { 
@@ -132,7 +145,7 @@ const BusinessManagement = () => {
     const handleViewUsers = async (tenantId) => {
         setUserModalOpen(true);
         setLoadingUsers(true);
-        setSelectedTenantUsers([]); // Reset list cũ
+        setSelectedTenantUsers([]);
         try {
             const users = await getTenantUsers(tenantId);
             setSelectedTenantUsers(users);
@@ -145,7 +158,7 @@ const BusinessManagement = () => {
     };
 
     return (
-        <div className="pt-6 min-h-screen bg-gray-50 px-4 font-sans">
+        <div className="pt-6 min-h-screen bg-gray-50 px-4 font-sans pb-10">
             <div className="max-w-7xl mx-auto">
                 {/* HEADER */}
                 <div className="flex justify-between items-center mb-6">
@@ -161,12 +174,68 @@ const BusinessManagement = () => {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
                     </div>
                 ) : (
-                    <BusinessTable
-                        businesses={businesses}
-                        onEdit={handleEdit}
-                        onToggleStatus={handleToggleStatus} // Truyền hàm mới
-                        onViewUsers={handleViewUsers}
-                    />
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        {/* Truyền danh sách đã phân trang vào bảng */}
+                        <BusinessTable
+                            businesses={currentBusinesses} 
+                            onEdit={handleEdit}
+                            onToggleStatus={handleToggleStatus}
+                            onViewUsers={handleViewUsers}
+                        />
+
+                        {/* --- PAGINATION BAR --- */}
+                        {businesses.length > 0 && (
+                            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
+                                <span className="text-sm text-gray-500">
+                                    Hiển thị <span className="font-medium text-gray-900">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, businesses.length)}</span> trong tổng số <span className="font-medium text-gray-900">{businesses.length}</span> doanh nghiệp
+                                </span>
+                                
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className={`p-2 rounded-lg border ${
+                                            currentPage === 1 
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" 
+                                            : "bg-white text-gray-600 hover:bg-gray-50 border-gray-300"
+                                        }`}
+                                    >
+                                        <FiChevronLeft className="w-4 h-4" />
+                                    </button>
+
+                                    {/* Số trang */}
+                                    {[...Array(totalPages)].map((_, idx) => {
+                                        const pageNum = idx + 1;
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => handlePageChange(pageNum)}
+                                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                                    currentPage === pageNum
+                                                        ? "bg-purple-600 text-white border border-purple-600"
+                                                        : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <button
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className={`p-2 rounded-lg border ${
+                                            currentPage === totalPages 
+                                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" 
+                                            : "bg-white text-gray-600 hover:bg-gray-50 border-gray-300"
+                                        }`}
+                                    >
+                                        <FiChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 

@@ -1,13 +1,16 @@
-// src/pages/LandingManagement/LandingManagement.jsx
-import { useEffect, useState } from "react";
-import { FiCheckCircle, FiCircle, FiEdit, FiEye, FiPlus } from "react-icons/fi"; // Import thêm icon
+import { useEffect, useState, useContext } from "react";
+import { FiCheckCircle, FiCircle, FiEdit, FiEye, FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { getMyLandings } from "../../services/api";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function LandingManagement() {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [landings, setLandings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const canEdit = user?.roles?.includes("Admin") || user?.roles?.includes("Editor");
 
   useEffect(() => {
     const fetchLandings = async () => {
@@ -16,7 +19,6 @@ export default function LandingManagement() {
         setLandings(data);
       } catch (err) {
         console.error("Lỗi tải danh sách landing:", err);
-        alert("Không tải được danh sách trang");
       } finally {
         setLoading(false);
       }
@@ -24,7 +26,6 @@ export default function LandingManagement() {
     fetchLandings();
   }, []);
 
-  // Hàm render badge trạng thái
   const renderStatusBadge = (status) => {
     if (status === "Published") {
       return (
@@ -57,23 +58,30 @@ export default function LandingManagement() {
             Danh sách landing page của doanh nghiệp bạn
           </p>
         </div>
-        <button
-          onClick={() => navigate("/admin/create-landing")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center"
-        >
-          <FiPlus size={18} /> Tạo Landing Page Mới
-        </button>
+        
+        {/* Chỉ hiện nút Tạo Mới nếu có quyền Edit */}
+        {canEdit && (
+          <button
+            onClick={() => navigate("/admin/create-landing")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center"
+          >
+            <FiPlus size={18} /> Tạo Landing Page Mới
+          </button>
+        )}
       </div>
 
       {landings.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           <p className="text-lg mb-4">Bạn chưa có landing page nào</p>
-          <button
-            onClick={() => navigate("/admin/create-landing")}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-          >
-            Tạo trang đầu tiên ngay!
-          </button>
+          {/* Chỉ hiện nút tạo nếu có quyền */}
+          {canEdit && (
+            <button
+              onClick={() => navigate("/admin/create-landing")}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+            >
+              Tạo trang đầu tiên ngay!
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,18 +105,27 @@ export default function LandingManagement() {
               </div>
 
               <div className="flex gap-2 mt-4">
+                {/* Nút Xem: Luôn hiện, style thay đổi tùy quyền */}
                 <button
                   onClick={() => window.open(`/${item.subdomain}/${item.slug}`, "_blank")}
-                  className="flex-1 bg-white border border-green-600 text-green-600 hover:bg-green-50 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold transition"
+                  className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold transition
+                    ${canEdit 
+                        ? "bg-white border border-green-600 text-green-600 hover:bg-green-50" 
+                        : "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+                    }`}
                 >
                   <FiEye /> Xem
                 </button>
-                <button
-                  onClick={() => navigate(`/admin/editor?id=${item.id}`)}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition"
-                >
-                  <FiEdit /> Sửa
-                </button>
+
+                {/* Nút Sửa: Chỉ hiện nếu có quyền */}
+                {canEdit && (
+                  <button
+                    onClick={() => navigate(`/admin/editor?id=${item.id}`)}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition"
+                  >
+                    <FiEdit /> Sửa
+                  </button>
+                )}
               </div>
             </div>
           ))}
