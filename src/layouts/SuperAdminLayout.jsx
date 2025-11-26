@@ -1,10 +1,13 @@
 // src/layouts/SuperAdminLayout.jsx
-import { useContext, useState, useRef, useEffect } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { 
-    FiBarChart2, FiGlobe, FiHome, FiLayers, FiLayout, FiShield, FiUsers, FiZap, 
-    FiLogOut, FiChevronDown, FiExternalLink 
-} from "react-icons/fi"; 
+import {
+    FiBarChart2,
+    FiChevronDown, FiExternalLink,
+    FiGlobe, FiHome, FiLayers, FiLayout,
+    FiLogOut,
+    FiShield, FiUsers, FiZap
+} from "react-icons/fi";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"; // Thêm useNavigate
 import { AuthContext } from "../context/AuthContext";
 
@@ -33,7 +36,7 @@ const SuperAdminLayout = () => {
     };
 
     const handleGoHome = () => {
-        navigate("/"); 
+        navigate("/superadmin"); 
     };
 
     const avatarUrl = user?.avatar || `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;
@@ -122,7 +125,7 @@ const SuperAdminLayout = () => {
             {/* MAIN CONTENT */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* HEADER */}
-                <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-20 relative">
+                <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-50 relative">
                     <h1 className="text-xl font-bold text-gray-800">
                         Bảng điều khiển SuperAdmin
                     </h1>
