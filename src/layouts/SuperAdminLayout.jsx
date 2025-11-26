@@ -36,7 +36,7 @@ const SuperAdminLayout = () => {
     };
 
     const handleGoHome = () => {
-        navigate("/superadmin"); 
+        navigate("/"); 
     };
 
     const avatarUrl = user?.avatar || `${import.meta.env.VITE_API_URL}/avatar/profile.jpg`;

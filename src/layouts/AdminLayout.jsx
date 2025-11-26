@@ -72,7 +72,7 @@ const AdminLayout = () => {
   };
 
   const handleGoHome = () => {
-    navigate("/admin"); 
+    navigate("/"); 
   };
 
   const getAvatarUrl = () => {
