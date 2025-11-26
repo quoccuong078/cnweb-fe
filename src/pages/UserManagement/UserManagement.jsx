@@ -1,5 +1,5 @@
 // src/pages/UserManagement/UserManagement.jsx
-import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'; // Thêm icon điều hướng
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -75,10 +75,29 @@ const UserManagement = () => {
         }
     };
 
+    // --- [LOGIC QUAN TRỌNG ĐÃ SỬA] ---
     const handleToggleLock = async (id, currentIsActive) => {
+        // 1. Tìm user đang thao tác
+        const targetUser = users.find(u => u.id === id);
+
+        // 2. KIỂM TRA QUYỀN: Chặn khóa SuperAdmin
+        // Lưu ý: "Admin" vẫn được phép khóa, chỉ chặn "SuperAdmin"
+        if (targetUser && targetUser.role === 'SuperAdmin') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Không được phép!',
+                text: 'Bạn không thể khóa tài khoản Quản trị viên cấp cao (SuperAdmin).',
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Đã hiểu'
+            });
+            return; // Dừng hàm ngay lập tức
+        }
+
+        // 3. Nếu không phải SuperAdmin, tiếp tục quy trình khóa/mở khóa
         const action = currentIsActive ? "KHÓA" : "MỞ KHÓA";
         const result = await Swal.fire({
             title: `Bạn muốn ${action} tài khoản này?`,
+            text: "Người dùng bị khóa sẽ không thể đăng nhập vào hệ thống.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: currentIsActive ? '#d33' : '#10b981',
