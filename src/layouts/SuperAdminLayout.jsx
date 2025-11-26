@@ -122,7 +122,7 @@ const SuperAdminLayout = () => {
             {/* MAIN CONTENT */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* HEADER */}
-                <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-20 relative">
+                <header className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-50 relative">
                     <h1 className="text-xl font-bold text-gray-800">
                         Bảng điều khiển SuperAdmin
                     </h1>
