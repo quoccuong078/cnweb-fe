@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
-import Swal from 'sweetalert2';
+// src/pages/EmployeeManagement/EmployeeManagement.jsx
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
-import EmployeeTable from './EmployeeTable';
 import EmployeeForm from './EmployeeForm';
+import EmployeeTable from './EmployeeTable';
 
-import { 
-    getEmployees, 
-    createEmployee, 
-    updateEmployee, 
-    toggleEmployeeStatus 
+import {
+    createEmployee,
+    getEmployees,
+    toggleEmployeeStatus,
+    updateEmployee
 } from '../../services/employeeService';
 
 const EmployeeManagement = () => {
@@ -19,6 +20,10 @@ const EmployeeManagement = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5); 
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState(null);
 
@@ -38,6 +43,10 @@ const EmployeeManagement = () => {
     useEffect(() => {
         fetchEmployees();
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const handleAdd = () => {
         setEditingEmployee(null);
@@ -78,7 +87,25 @@ const EmployeeManagement = () => {
         }
     };
 
+    // --- [ĐÃ SỬA LỖI TẠI ĐÂY] ---
     const handleToggleLock = async (id, currentIsActive) => {
+        // 1. Tìm nhân viên
+        const targetEmployee = employees.find(e => e.id === id);
+
+        // 2. KIỂM TRA QUYỀN: 
+        // Sửa lỗi: Dùng .role thay vì .roleName để khớp với dữ liệu từ API
+        if (targetEmployee && targetEmployee.role === 'Admin') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Không được phép!',
+                text: 'Bạn không thể khóa tài khoản Trưởng phòng (Admin).',
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Đã hiểu'
+            });
+            return; 
+        }
+
+        // 3. Thực hiện khóa/mở khóa
         const action = currentIsActive ? "KHÓA" : "MỞ KHÓA";
         
         const result = await Swal.fire({
@@ -122,10 +149,18 @@ const EmployeeManagement = () => {
         }
     };
 
+    // --- LOGIC PHÂN TRANG & SEARCH ---
     const filteredEmployees = employees.filter(e => 
         (e.fullName && e.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (e.email && e.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentEmployees = filteredEmployees.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div className="min-h-screen bg-gray-50 p-6 font-sans">
@@ -135,7 +170,6 @@ const EmployeeManagement = () => {
                     <h1 className="text-3xl font-bold text-indigo-800">Quản lý nhân viên</h1>
 
                     <div className="flex gap-3 w-full md:w-auto">
-                        {/* Search Bar */}
                         <div className="relative flex-1 md:w-64">
                             <Search className="absolute left-3 top-3 text-gray-400" size={18} />
                             <input 
@@ -149,23 +183,61 @@ const EmployeeManagement = () => {
 
                         <button
                             onClick={handleAdd}
-                            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-md transition font-medium"
+                            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-md transition font-medium whitespace-nowrap"
                         >
                             <Plus size={18} /> Thêm nhân viên
                         </button>
                     </div>
                 </div>
 
-                {/* Table Component */}
                 <EmployeeTable
-                    employees={filteredEmployees}
+                    employees={currentEmployees}
                     loading={loading}
                     onEdit={handleEdit}
                     onToggleLock={handleToggleLock}
                 />
+
+                {!loading && filteredEmployees.length > 0 && (
+                    <div className="flex justify-between items-center mt-6 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                        <div className="text-sm text-gray-500 pl-2">
+                            Hiển thị <strong>{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredEmployees.length)}</strong> trong tổng số <strong>{filteredEmployees.length}</strong> nhân viên
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => paginate(currentPage - 1)} 
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => paginate(i + 1)}
+                                    className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
+                                        currentPage === i + 1 
+                                            ? 'bg-indigo-600 text-white shadow-md' 
+                                            : 'bg-white text-gray-600 hover:bg-indigo-50 border'
+                                    }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+
+                            <button 
+                                onClick={() => paginate(currentPage + 1)} 
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Modal Form Component */}
             {isModalOpen && (
                 <EmployeeForm
                     employee={editingEmployee}

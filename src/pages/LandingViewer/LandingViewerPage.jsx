@@ -36,99 +36,132 @@ const sectionMap = {
 
 export default function LandingViewerPage() {
     const { subdomain, slug } = useParams();
-    const effectiveSlug = slug || "trang-chu";
+    
+    // [SỬA ĐỔI 1]: Xóa bỏ dòng effectiveSlug cũ ép cứng "trang-chu"
+    // Chúng ta sẽ dùng trực tiếp biến `slug` (có thể là undefined)
 
     const [sections, setSections] = useState([]);
     const [config, setConfig] = useState({ customColors: "blue" });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 1. Tạo biến ref để đánh dấu
-    const hasFetched = useRef(false);
+    // Biến ref để tránh gọi API 2 lần (React.StrictMode)
+    const hasFetched = useRef("");
 
     useEffect(() => {
-    // 2. Nếu đã fetch rồi thì dừng lại ngay, không chạy code bên dưới nữa
-    // Lưu ý: Reset hasFetched khi subdomain hoặc slug thay đổi để nó load trang mới
-    if (hasFetched.current === `${subdomain}-${slug}`) return;
-    
-    const fetchData = async () => {
-        try {
-        // Đánh dấu là đã đang chạy cho trang này
-        hasFetched.current = `${subdomain}-${slug}`;
-            // 1. Logic xác định Unique Visitor (Sử dụng localStorage)
-            // Key lưu trữ: "visited_{subdomain}_{date}"
-            const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-            const visitKey = `visited_${subdomain}_${today}`;
-            const hasVisitedToday = localStorage.getItem(visitKey);
-            
-            // Nếu chưa có key -> Là khách unique
-            const isUnique = !hasVisitedToday;
+        // [SỬA ĐỔI 2]: Tạo key định danh bao gồm trường hợp không có slug
+        const currentRequestKey = `${subdomain}-${slug || "root"}`;
 
-            // Lưu lại trạng thái đã visit
-            if (isUnique) {
-            localStorage.setItem(visitKey, "true");
-        }
+        // Nếu đã fetch đúng key này rồi thì bỏ qua
+        if (hasFetched.current === currentRequestKey) return;
+        
+        const fetchData = async () => {
+            try {
+                hasFetched.current = currentRequestKey;
+                setLoading(true);
 
-        // 2. Gọi API kèm theo Header xác định Unique và Nguồn truy cập (Referer)
-        const res = await api.get(`/landing/${subdomain}/${effectiveSlug}`, {
+                // 1. Logic xác định Unique Visitor
+                const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+                const visitKey = `visited_${subdomain}_${today}`;
+                const hasVisitedToday = localStorage.getItem(visitKey);
+                
+                const isUnique = !hasVisitedToday;
+
+                if (isUnique) {
+                    localStorage.setItem(visitKey, "true");
+                }
+
+                // [SỬA ĐỔI 3]: Xây dựng URL API linh động
+                // Nếu có slug -> /landing/subdomain/slug
+                // Nếu KHÔNG có slug -> /landing/subdomain (Backend tự tìm trang chủ)
+                let apiUrl = `/landing/${subdomain}`;
+                if (slug) {
+                    apiUrl += `/${slug}`;
+                }
+
+                // Gọi API
+                const res = await api.get(apiUrl, {
                     headers: {
                         "X-Is-Unique": isUnique ? "true" : "false",
                         "X-Source": document.referrer || "Direct"
                     }
                 });
 
-        const data = res.data;
+                const data = res.data;
+                console.log("Backend trả về:", data);
 
-            console.log("Backend trả về:", data);
+                let pageSections = [];
+                let pageConfig = { customColors: "blue" };
 
-            let pageSections = [];
-            let pageConfig = { customColors: "blue" };
+                // Hỗ trợ map dữ liệu từ Backend
+                if (data.pageSections) {
+                    pageSections = data.pageSections;
+                    pageConfig = data.pageConfiguration || data.pageConfig || pageConfig;
+                }
+                else if (data.sections) {
+                    pageSections = data.sections;
+                    pageConfig = data.configuration || pageConfig;
+                }
+                // Fallback dữ liệu mẫu nếu backend trả về thiếu
+                else if (data.customColors) {
+                    pageConfig.customColors = data.customColors;
+                    pageSections = [
+                        { id: 1, sectionType: "hero", content: JSON.stringify({ title: "Website đang xây dựng", subtitle: "Vui lòng quay lại sau", buttonText: "Liên hệ" }), order: 0 },
+                        { id: 99, sectionType: "footer", content: JSON.stringify({ logoText: subdomain, description: "Powered by SaaS Platform", copyright: "© 2025" }), order: 99 }
+                    ];
+                }
 
-            // Hỗ trợ nhiều kiểu trả về từ backend
-            if (data.pageSections) {
-            pageSections = data.pageSections;
-            pageConfig = data.pageConfiguration || data.pageConfig || pageConfig;
+                setSections(pageSections.sort((a, b) => a.order - b.order));
+                setConfig(pageConfig);
+                setError(null); // Reset lỗi nếu thành công
+
+            } catch (err) {
+                console.error(err);
+                // Hiển thị lỗi thân thiện hơn
+                if (err.response && err.response.status === 404) {
+                    setError("Trang này không tồn tại hoặc chưa được xuất bản.");
+                } else {
+                    setError("Đã xảy ra lỗi khi tải trang.");
+                }
+            } finally {
+                setLoading(false);
             }
-            else if (data.sections) {
-            pageSections = data.sections;
-            pageConfig = data.configuration || pageConfig;
-            }
-            // Nếu backend trả kiểu cũ (chỉ config), tạm thời dùng section mặc định từ seed
-            else if (data.customColors) {
-            pageConfig.customColors = data.customColors;
-            // Dùng dữ liệu từ seed (tạm thời)
-            pageSections = [
-                { id: 1, sectionType: "hero", content: JSON.stringify({ title: "Chào mừng đến với TNDT Việt Nam", subtitle: "Giải pháp công nghệ toàn diện", buttonText: "Liên hệ ngay" }), order: 0 },
-                { id: 5, sectionType: "footer", content: JSON.stringify({ logoText: "TNDT Việt Nam", description: "Giải pháp công nghệ hàng đầu Việt Nam.", copyright: "© 2025 TNDT Việt Nam" }), order: 99 }
-            ];
-            }
-
-            setSections(pageSections.sort((a, b) => a.order - b.order));
-            setConfig(pageConfig);
-        } catch (err) {
-            console.error(err);
-            setError("Không tải được trang. Vui lòng thử lại sau.");
-        } finally {
-            setLoading(false);
-        }
         };
 
-        if (subdomain) fetchData();
-    }, [subdomain, effectiveSlug]);
+        if (subdomain) {
+            fetchData();
+        }
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-2xl">Đang tải...</div>;
-    if (error) return <div className="min-h-screen flex items-center justify-center text-red-600 text-xl">{error}</div>;
+    }, [subdomain, slug]); // [SỬA ĐỔI 4]: Dependency chỉ phụ thuộc vào subdomain và slug gốc
+
+    if (loading) return <div className="min-h-screen flex items-center justify-center text-2xl text-gray-500">Đang tải nội dung...</div>;
+    
+    if (error) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+            <p className="text-xl text-gray-600 mb-6">{error}</p>
+            <a href="/" className="text-blue-600 hover:underline">Quay về trang chủ hệ thống</a>
+        </div>
+    );
 
     const color = config.customColors || "blue";
 
     return (
         <div className="min-h-screen bg-gray-50">
-        {sections.map(sec => {
-            const parsed = JSON.parse(sec.content || "{}");
-            const Component = sectionMap[sec.sectionType.toLowerCase()];
-            if (!Component) return null;
-            return <Component key={sec.id} data={parsed} color={color} />;
-        })}
+            {sections.map(sec => {
+                // Parse nội dung JSON an toàn
+                let parsed = {};
+                try {
+                    parsed = sec.content ? JSON.parse(sec.content) : {};
+                } catch (e) {
+                    console.error("Lỗi parse JSON section:", sec.id);
+                }
+
+                const Component = sectionMap[sec.sectionType.toLowerCase()];
+                if (!Component) return null;
+                
+                return <Component key={sec.id} data={parsed} color={color} />;
+            })}
         </div>
     );
 }

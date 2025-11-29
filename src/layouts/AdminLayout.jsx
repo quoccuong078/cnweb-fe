@@ -1,9 +1,15 @@
 // src/layouts/AdminLayout.jsx
 import { useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { 
-    FiAlertCircle, FiBarChart2, FiCreditCard, FiEdit3, FiEye, FiHome, 
-    FiLayers, FiSettings, FiShield, FiUsers, FiLogOut, FiChevronDown, FiExternalLink 
+import {
+  FiAlertCircle, FiBarChart2,
+  FiChevronDown,
+  FiCreditCard, FiEdit3,
+  FiExternalLink,
+  FiEye, FiHome,
+  FiLayers,
+  FiLogOut,
+  FiSettings, FiShield, FiUsers
 } from "react-icons/fi";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
